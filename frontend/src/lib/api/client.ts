@@ -382,10 +382,15 @@ export class ApiClient {
     return this.request<{ testimonials: Testimonial[] }>(`/api/admin/testimonials${query}`);
   }
 
-  async updateTestimonialStatus(id: string, status: string) {
-    return this.request<{ testimonial: Testimonial }>(`/api/admin/testimonials/${id}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status }),
+  async approveTestimonial(id: string) {
+    return this.request<{ testimonial: Testimonial }>(`/api/admin/testimonials/${id}/approve`, {
+      method: 'PUT',
+    });
+  }
+
+  async rejectTestimonial(id: string) {
+    return this.request<{ testimonial: Testimonial }>(`/api/admin/testimonials/${id}/reject`, {
+      method: 'PUT',
     });
   }
 
@@ -504,6 +509,20 @@ export class ApiClient {
     message: string;
   }) {
     return this.request('/api/public/messages', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async submitTestimonial(data: {
+    name: string;
+    position: string;
+    company?: string;
+    email: string;
+    message: string;
+    rating: number;
+  }) {
+    return this.request('/api/public/testimonials', {
       method: 'POST',
       body: JSON.stringify(data),
     });

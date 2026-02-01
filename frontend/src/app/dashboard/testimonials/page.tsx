@@ -41,12 +41,21 @@ export default function TestimonialsPage() {
     loadTestimonials(newFilter);
   };
 
-  const handleStatusChange = async (id: string, status: string) => {
+  const handleApprove = async (id: string) => {
     try {
-      await apiClient.updateTestimonialStatus(id, status);
+      await apiClient.approveTestimonial(id);
       await loadTestimonials(filter);
     } catch (error: any) {
-      alert(`Failed to update: ${error.message}`);
+      alert(`Failed to approve: ${error.message}`);
+    }
+  };
+
+  const handleReject = async (id: string) => {
+    try {
+      await apiClient.rejectTestimonial(id);
+      await loadTestimonials(filter);
+    } catch (error: any) {
+      alert(`Failed to reject: ${error.message}`);
     }
   };
 
@@ -156,7 +165,7 @@ export default function TestimonialsPage() {
               <div className="flex gap-2">
                 {testimonial.status !== 'approved' && (
                   <button
-                    onClick={() => handleStatusChange(testimonial.id, 'approved')}
+                    onClick={() => handleApprove(testimonial.id)}
                     className="flex-1 px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700"
                   >
                     ✓ Approve
@@ -164,7 +173,7 @@ export default function TestimonialsPage() {
                 )}
                 {testimonial.status !== 'rejected' && (
                   <button
-                    onClick={() => handleStatusChange(testimonial.id, 'rejected')}
+                    onClick={() => handleReject(testimonial.id)}
                     className="flex-1 px-3 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700"
                   >
                     ✗ Reject
