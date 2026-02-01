@@ -1,0 +1,180 @@
+services:
+  # =============================================================================
+  # PostgreSQL Databases
+  # =============================================================================
+  
+  app-db:
+    image: postgres:17
+    container_name: portfolio-app-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: portfolio_app
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: app_pass
+    ports:
+      - "5433:5432"
+    volumes:
+      - app-db-data:/var/lib/postgresql/data
+    networks:
+      - portfolio-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app_user -d portfolio_app"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth-db:
+    image: postgres:17
+    container_name: portfolio-auth-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: auth_pass
+    ports:
+      - "5434:5432"
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    networks:
+      - portfolio-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth_user -d auth_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # =============================================================================
+  # Backend API Service
+  # =============================================================================
+  
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: portfolio-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgres://app_user:app_pass@app-db:5432/portfolio_app
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET}
+      AUTH_SERVICE_URL: http://auth-service:3001
+      CORS_ORIGINS: ${CORS_ORIGINS}
+    depends_on:
+      app-db:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - portfolio-net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================================================
+  # Auth Service
+  # =============================================================================
+  
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: portfolio-auth-service
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgres://auth_user:auth_pass@auth-db:5432/auth_db
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+    depends_on:
+      auth-db:
+        condition: service_healthy
+    networks:
+      - portfolio-net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================================================
+  # Frontend
+  # =============================================================================
+  
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_AUTH_SERVICE_URL: ${NEXT_PUBLIC_AUTH_SERVICE_URL}
+    container_name: portfolio-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_AUTH_SERVICE_URL: ${NEXT_PUBLIC_AUTH_SERVICE_URL}
+      API_URL: http://backend:8080
+      AUTH_SERVICE_URL: http://auth-service:3001
+    depends_on:
+      - backend
+      - auth-service
+    networks:
+      - portfolio-net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================================================
+  # pgAdmin (Optional - use with --profile pgadmin)
+  # =============================================================================
+  
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: portfolio-pgadmin
+    restart: unless-stopped
+    profiles:
+      - pgadmin
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@portfolio.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin123}
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - portfolio-net
+    depends_on:
+      - app-db
+      - auth-db
+
+# =============================================================================
+# Networks
+# =============================================================================
+
+networks:
+  portfolio-net:
+    driver: bridge
+
+# =============================================================================
+# Volumes
+# =============================================================================
+
+volumes:
+  app-db-data:
+  auth-db-data:
+  pgadmin-data:
