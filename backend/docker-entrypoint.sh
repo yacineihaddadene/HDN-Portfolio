@@ -1,27 +1,58 @@
 #!/bin/sh
 set -e
 
-echo "🚀 Starting backend service..."
-
-# Wait for database to be ready
-echo "⏳ Waiting for database..."
-until wget --spider -q http://app-db:5432 2>/dev/null || nc -z app-db 5432; do
-  echo "Database is unavailable - sleeping"
+echo "Waiting for database to be ready..."
+# Wait for PostgreSQL to be ready (max 60 seconds)
+TIMEOUT=60
+ELAPSED=0
+until pg_isready -h app-db -U app_user -d portfolio_app 2>/dev/null || [ $ELAPSED -ge $TIMEOUT ]; do
+  echo "Database is unavailable - sleeping (${ELAPSED}s/${TIMEOUT}s)"
   sleep 2
+  ELAPSED=$((ELAPSED + 2))
 done
 
-echo "✅ Database is ready!"
+if [ $ELAPSED -ge $TIMEOUT ]; then
+  echo "ERROR: Database did not become ready within ${TIMEOUT} seconds"
+  exit 1
+fi
 
-# Run migrations
-echo "🔧 Running migrations..."
-npm run db:migrate || echo "⚠️  Custom migration failed or already applied"
-npm run db:push || echo "⚠️  Drizzle push failed"
+echo "Database is ready!"
 
-# Seed database
-echo "🌱 Seeding database..."
-npm run seed || echo "⚠️  Seeding failed or already done"
+echo "Running database migrations..."
+if npm run db:migrate; then
+  echo "Custom migrations completed"
+fi
+if npm run db:push; then
+  echo "Migrations completed successfully"
+else
+  echo "WARNING: Migrations failed, but continuing..."
+fi
 
-echo "✅ Backend initialization complete!"
+echo "Seeding database..."
+# Run seed in background and wait with timeout
+npm run seed &
+SEED_PID=$!
+# Wait up to 30 seconds for seed to complete
+for i in $(seq 1 30); do
+  if ! kill -0 $SEED_PID 2>/dev/null; then
+    # Process finished
+    wait $SEED_PID
+    SEED_EXIT=$?
+    if [ $SEED_EXIT -eq 0 ]; then
+      echo "Seeding completed successfully"
+    else
+      echo "WARNING: Seeding exited with code $SEED_EXIT, but continuing..."
+    fi
+    break
+  fi
+  sleep 1
+done
+# If still running, kill it and continue
+if kill -0 $SEED_PID 2>/dev/null; then
+  echo "WARNING: Seeding timed out, killing process and continuing..."
+  kill $SEED_PID 2>/dev/null || true
+  wait $SEED_PID 2>/dev/null || true
+fi
 
-# Execute the CMD
-exec "$@"
+echo "Starting Next.js server..."
+exec node server.js

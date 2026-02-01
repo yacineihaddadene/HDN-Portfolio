@@ -1,36 +1,67 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { messages } from '@/lib/db/schema';
-import { messageSchema } from '@/lib/utils/validation';
+import { NextRequest, NextResponse } from "next/server";
+import { db, contactMessages } from "@/lib/db";
+import { validateEmail, sanitizeText, validateNotEmpty } from "@/lib/utils/validation";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const validatedData = messageSchema.parse(body);
+    const { name, email, subject, message } = body;
 
-    const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
-    const userAgent = request.headers.get('user-agent') || 'unknown';
-
-    const [newMessage] = await db
-      .insert(messages)
-      .values({
-        ...validatedData,
-        ipAddress,
-        userAgent,
-      })
-      .returning();
-
-    return NextResponse.json(newMessage, { status: 201 });
-  } catch (error: any) {
-    console.error('Error creating message:', error);
-    if (error.name === 'ZodError') {
+    // Validation
+    if (!validateNotEmpty(name)) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: "Name is required" },
         { status: 400 }
       );
     }
+
+    if (!validateEmail(email)) {
+      return NextResponse.json(
+        { error: "Valid email is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!validateNotEmpty(subject)) {
+      return NextResponse.json(
+        { error: "Subject is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!validateNotEmpty(message)) {
+      return NextResponse.json(
+        { error: "Message is required" },
+        { status: 400 }
+      );
+    }
+
+    // Sanitize inputs
+    const sanitizedName = sanitizeText(name);
+    const sanitizedSubject = sanitizeText(subject);
+    const sanitizedMessage = sanitizeText(message);
+
+    // Insert message
+    const [newMessage] = await db
+      .insert(contactMessages)
+      .values({
+        name: sanitizedName,
+        email: email.trim().toLowerCase(),
+        subject: sanitizedSubject,
+        message: sanitizedMessage,
+        status: "unread",
+      })
+      .returning();
+
+    return NextResponse.json({
+      success: true,
+      message: "Message sent successfully",
+      id: newMessage.id,
+    });
+  } catch (error) {
+    console.error("Error creating message:", error);
     return NextResponse.json(
-      { error: 'Failed to create message' },
+      { error: "Failed to send message" },
       { status: 500 }
     );
   }

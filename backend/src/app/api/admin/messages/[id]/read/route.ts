@@ -1,33 +1,52 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { messages } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
-import { requireAdmin } from '@/lib/auth';
+import { NextRequest, NextResponse } from "next/server";
+import { db, contactMessages } from "@/lib/db";
+import { requireAdmin } from "@/lib/auth/jwt-verification";
+import { eq } from "drizzle-orm";
+import { validateUUID } from "@/lib/utils/validation";
 
-export async function PATCH(
+export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authResult = requireAdmin(request);
+  if (authResult instanceof NextResponse) {
+    return authResult;
+  }
+
   try {
-    await requireAdmin(request);
     const { id } = await params;
-    const messageId = parseInt(id);
 
-    const [updated] = await db
-      .update(messages)
-      .set({ read: true, updatedAt: new Date() })
-      .where(eq(messages.id, messageId))
-      .returning();
-
-    if (!updated) {
-      return NextResponse.json({ error: 'Message not found' }, { status: 404 });
+    if (!validateUUID(id)) {
+      return NextResponse.json({ error: "Invalid message ID" }, { status: 400 });
     }
 
-    return NextResponse.json(updated);
-  } catch (error: any) {
+    // Check if message exists
+    const [existingMessage] = await db
+      .select()
+      .from(contactMessages)
+      .where(eq(contactMessages.id, id))
+      .limit(1);
+
+    if (!existingMessage) {
+      return NextResponse.json({ error: "Message not found" }, { status: 404 });
+    }
+
+    // Update status to read
+    const [updatedMessage] = await db
+      .update(contactMessages)
+      .set({
+        status: "read",
+        updatedAt: new Date(),
+      })
+      .where(eq(contactMessages.id, id))
+      .returning();
+
+    return NextResponse.json({ message: updatedMessage });
+  } catch (error) {
+    console.error("Error marking message as read:", error);
     return NextResponse.json(
-      { error: error.message || 'Unauthorized' },
-      { status: error.message?.includes('Forbidden') ? 403 : 401 }
+      { error: "Failed to update message status" },
+      { status: 500 }
     );
   }
 }

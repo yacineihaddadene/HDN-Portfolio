@@ -1,8 +1,8 @@
-export default function Home() {
+export default function HomePage() {
   return (
-    <main>
-      <h1>Portfolio Backend API</h1>
-      <p>API is running. See /api/health for status.</p>
-    </main>
+    <div>
+      <h1>Backend API</h1>
+      <p>Portfolio Backend Service</p>
+    </div>
   );
 }

@@ -1,81 +1,35 @@
-import postgres from 'postgres';
+/**
+ * Runs the education text→jsonb migration (backfill existing rows as { en, fr }).
+ * Safe to run multiple times: only alters columns that are still text.
+ */
+import postgres from "postgres";
+import fs from "fs";
+import path from "path";
 
-const DATABASE_URL = process.env.DATABASE_URL!;
+async function run() {
+  const url = process.env.DATABASE_URL;
+  if (!url) {
+    console.log("DATABASE_URL not set, skipping education migration.");
+    process.exit(0);
+  }
 
-async function runMigration() {
-  console.log('🔧 Running education migration...');
-  
-  const sql = postgres(DATABASE_URL);
+  const sqlPath = path.join(process.cwd(), "drizzle", "0001_education_text_to_jsonb.sql");
+  if (!fs.existsSync(sqlPath)) {
+    console.log("Education migration file not found, skipping.");
+    process.exit(0);
+  }
 
+  const sql = postgres(url, { max: 1 });
   try {
-    // Check if the education table exists and has old structure
-    const tableExists = await sql`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_name = 'education'
-      );
-    `;
-
-    if (tableExists[0].exists) {
-      console.log('📝 Migrating education description field...');
-      
-      // Check if description is text type
-      const columnType = await sql`
-        SELECT data_type 
-        FROM information_schema.columns 
-        WHERE table_name = 'education' 
-        AND column_name = 'description';
-      `;
-
-      if (columnType[0]?.data_type === 'text') {
-        console.log('Converting text description to jsonb array...');
-        
-        // Migrate existing data
-        await sql`
-          ALTER TABLE education 
-          ADD COLUMN description_temp jsonb;
-        `;
-
-        await sql`
-          UPDATE education 
-          SET description_temp = CASE 
-            WHEN description IS NOT NULL AND description != '' 
-            THEN to_jsonb(ARRAY[description])
-            ELSE '[]'::jsonb
-          END;
-        `;
-
-        await sql`
-          ALTER TABLE education 
-          DROP COLUMN description;
-        `;
-
-        await sql`
-          ALTER TABLE education 
-          RENAME COLUMN description_temp TO description;
-        `;
-
-        console.log('✅ Migration completed successfully!');
-      } else {
-        console.log('⏭️  Description field already migrated, skipping...');
-      }
-    } else {
-      console.log('⏭️  Education table does not exist yet, skipping migration...');
-    }
-  } catch (error) {
-    console.error('❌ Migration failed:', error);
-    throw error;
+    const body = fs.readFileSync(sqlPath, "utf-8");
+    await sql.unsafe(body);
+    console.log("Education text→jsonb migration applied.");
+  } catch (err) {
+    console.error("Education migration failed:", err);
+    process.exit(1);
   } finally {
     await sql.end();
   }
 }
 
-runMigration()
-  .then(() => {
-    console.log('Migration finished');
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error('Migration failed:', error);
-    process.exit(1);
-  });
+run();

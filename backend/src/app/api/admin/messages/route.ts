@@ -1,17 +1,39 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { messages } from '@/lib/db/schema';
-import { requireAdmin } from '@/lib/auth';
+import { NextRequest, NextResponse } from "next/server";
+import { db, contactMessages } from "@/lib/db";
+import { requireAdmin } from "@/lib/auth/jwt-verification";
+import { eq, desc } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
+  const authResult = requireAdmin(request);
+  if (authResult instanceof NextResponse) {
+    return authResult;
+  }
+
   try {
-    await requireAdmin(request);
-    const allMessages = await db.select().from(messages);
-    return NextResponse.json(allMessages);
-  } catch (error: any) {
+    const searchParams = request.nextUrl.searchParams;
+    const status = searchParams.get("status");
+
+    // Build query with optional status filter
+    if (status && ["unread", "read"].includes(status)) {
+      const allMessages = await db
+        .select()
+        .from(contactMessages)
+        .where(eq(contactMessages.status, status))
+        .orderBy(desc(contactMessages.createdAt));
+      return NextResponse.json({ messages: allMessages });
+    }
+
+    const allMessages = await db
+      .select()
+      .from(contactMessages)
+      .orderBy(desc(contactMessages.createdAt));
+
+    return NextResponse.json({ messages: allMessages });
+  } catch (error) {
+    console.error("Error fetching messages:", error);
     return NextResponse.json(
-      { error: error.message || 'Unauthorized' },
-      { status: error.message?.includes('Forbidden') ? 403 : 401 }
+      { error: "Failed to fetch messages" },
+      { status: 500 }
     );
   }
 }

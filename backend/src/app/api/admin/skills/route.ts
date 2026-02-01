@@ -1,43 +1,82 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { skills } from '@/lib/db/schema';
-import { requireAdmin } from '@/lib/auth';
-import { skillSchema } from '@/lib/utils/validation';
+import { NextRequest, NextResponse } from "next/server";
+import { db, skills } from "@/lib/db";
+import { requireAdmin } from "@/lib/auth/jwt-verification";
+import { eq } from "drizzle-orm";
+import { validateNotEmpty, sanitizeText } from "@/lib/utils/validation";
 
 export async function GET(request: NextRequest) {
+  const authResult = requireAdmin(request);
+  if (authResult instanceof NextResponse) {
+    return authResult;
+  }
+
   try {
-    await requireAdmin(request);
-    const allSkills = await db.select().from(skills);
-    return NextResponse.json(allSkills);
-  } catch (error: any) {
+    const allSkills = await db.select().from(skills).orderBy(skills.order);
+    return NextResponse.json({ skills: allSkills });
+  } catch (error) {
+    console.error("Error fetching skills:", error);
     return NextResponse.json(
-      { error: error.message || 'Unauthorized' },
-      { status: error.message?.includes('Forbidden') ? 403 : 401 }
+      { error: "Failed to fetch skills" },
+      { status: 500 }
     );
   }
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    await requireAdmin(request);
-    const body = await request.json();
-    const validatedData = skillSchema.parse(body);
+  const authResult = requireAdmin(request);
+  if (authResult instanceof NextResponse) {
+    return authResult;
+  }
 
-    const [newSkill] = await db.insert(skills).values(validatedData).returning();
-    return NextResponse.json(newSkill, { status: 201 });
-  } catch (error: any) {
-    if (error.message?.includes('Forbidden') || error.message?.includes('Unauthorized')) {
+  try {
+    const body = await request.json();
+    const { name, category, order } = body;
+
+    // Validation
+    if (!name || typeof name !== "object" || !name.en || !name.fr) {
       return NextResponse.json(
-        { error: error.message },
-        { status: error.message.includes('Forbidden') ? 403 : 401 }
-      );
-    }
-    if (error.name === 'ZodError') {
-      return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: "Name must be an object with 'en' and 'fr' properties" },
         { status: 400 }
       );
     }
-    return NextResponse.json({ error: 'Failed to create skill' }, { status: 500 });
+
+    if (!validateNotEmpty(name.en) || !validateNotEmpty(name.fr)) {
+      return NextResponse.json(
+        { error: "Name in both languages is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!validateNotEmpty(category)) {
+      return NextResponse.json(
+        { error: "Category is required" },
+        { status: 400 }
+      );
+    }
+
+    // Sanitize
+    const sanitizedName = {
+      en: sanitizeText(name.en),
+      fr: sanitizeText(name.fr),
+    };
+    const sanitizedCategory = sanitizeText(category);
+    const orderValue = order ? parseInt(order, 10) : 0;
+
+    const [newSkill] = await db
+      .insert(skills)
+      .values({
+        name: sanitizedName,
+        category: sanitizedCategory,
+        order: orderValue,
+      })
+      .returning();
+
+    return NextResponse.json({ skill: newSkill }, { status: 201 });
+  } catch (error) {
+    console.error("Error creating skill:", error);
+    return NextResponse.json(
+      { error: "Failed to create skill" },
+      { status: 500 }
+    );
   }
 }

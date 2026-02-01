@@ -1,46 +1,84 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { skills } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
-import { requireAdmin } from '@/lib/auth';
-import { skillSchema } from '@/lib/utils/validation';
+import { NextRequest, NextResponse } from "next/server";
+import { db, skills } from "@/lib/db";
+import { requireAdmin } from "@/lib/auth/jwt-verification";
+import { eq } from "drizzle-orm";
+import { validateNotEmpty, sanitizeText, validateUUID } from "@/lib/utils/validation";
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    await requireAdmin(request);
-    const body = await request.json();
-    const validatedData = skillSchema.parse(body);
-    const { id } = await params;
-    const skillId = parseInt(id);
+  const authResult = requireAdmin(request);
+  if (authResult instanceof NextResponse) {
+    return authResult;
+  }
 
-    const [updated] = await db
+  try {
+    const { id } = await params;
+
+    if (!validateUUID(id)) {
+      return NextResponse.json({ error: "Invalid skill ID" }, { status: 400 });
+    }
+
+    const body = await request.json();
+    const { name, category, order } = body;
+
+    // Check if skill exists
+    const [existingSkill] = await db
+      .select()
+      .from(skills)
+      .where(eq(skills.id, id))
+      .limit(1);
+
+    if (!existingSkill) {
+      return NextResponse.json({ error: "Skill not found" }, { status: 404 });
+    }
+
+    // Build update object
+    const updateData: any = {};
+
+    if (name !== undefined) {
+      if (typeof name !== "object" || !name.en || !name.fr) {
+        return NextResponse.json(
+          { error: "Name must be an object with 'en' and 'fr' properties" },
+          { status: 400 }
+        );
+      }
+      updateData.name = {
+        en: sanitizeText(name.en),
+        fr: sanitizeText(name.fr),
+      };
+    }
+
+    if (category !== undefined) {
+      if (!validateNotEmpty(category)) {
+        return NextResponse.json(
+          { error: "Category cannot be empty" },
+          { status: 400 }
+        );
+      }
+      updateData.category = sanitizeText(category);
+    }
+
+    if (order !== undefined) {
+      updateData.order = parseInt(order, 10);
+    }
+
+    updateData.updatedAt = new Date();
+
+    const [updatedSkill] = await db
       .update(skills)
-      .set({ ...validatedData, updatedAt: new Date() })
-      .where(eq(skills.id, skillId))
+      .set(updateData)
+      .where(eq(skills.id, id))
       .returning();
 
-    if (!updated) {
-      return NextResponse.json({ error: 'Skill not found' }, { status: 404 });
-    }
-
-    return NextResponse.json(updated);
-  } catch (error: any) {
-    if (error.message?.includes('Forbidden') || error.message?.includes('Unauthorized')) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.message.includes('Forbidden') ? 403 : 401 }
-      );
-    }
-    if (error.name === 'ZodError') {
-      return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
-        { status: 400 }
-      );
-    }
-    return NextResponse.json({ error: 'Failed to update skill' }, { status: 500 });
+    return NextResponse.json({ skill: updatedSkill });
+  } catch (error) {
+    console.error("Error updating skill:", error);
+    return NextResponse.json(
+      { error: "Failed to update skill" },
+      { status: 500 }
+    );
   }
 }
 
@@ -48,22 +86,37 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authResult = requireAdmin(request);
+  if (authResult instanceof NextResponse) {
+    return authResult;
+  }
+
   try {
-    await requireAdmin(request);
     const { id } = await params;
-    const skillId = parseInt(id);
 
-    const [deleted] = await db.delete(skills).where(eq(skills.id, skillId)).returning();
-
-    if (!deleted) {
-      return NextResponse.json({ error: 'Skill not found' }, { status: 404 });
+    if (!validateUUID(id)) {
+      return NextResponse.json({ error: "Invalid skill ID" }, { status: 400 });
     }
 
-    return NextResponse.json({ message: 'Skill deleted successfully' });
-  } catch (error: any) {
+    // Check if skill exists
+    const [existingSkill] = await db
+      .select()
+      .from(skills)
+      .where(eq(skills.id, id))
+      .limit(1);
+
+    if (!existingSkill) {
+      return NextResponse.json({ error: "Skill not found" }, { status: 404 });
+    }
+
+    await db.delete(skills).where(eq(skills.id, id));
+
+    return NextResponse.json({ success: true, message: "Skill deleted" });
+  } catch (error) {
+    console.error("Error deleting skill:", error);
     return NextResponse.json(
-      { error: error.message || 'Unauthorized' },
-      { status: error.message?.includes('Forbidden') ? 403 : 401 }
+      { error: "Failed to delete skill" },
+      { status: 500 }
     );
   }
 }

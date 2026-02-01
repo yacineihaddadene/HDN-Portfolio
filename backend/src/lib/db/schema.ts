@@ -1,131 +1,149 @@
-import { pgTable, serial, text, timestamp, boolean, jsonb, integer } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, integer, boolean, date, timestamp, jsonb } from "drizzle-orm/pg-core";
 
-// Skills table
-export const skills = pgTable('skills', {
-  id: serial('id').primaryKey(),
-  name: text('name').notNull(),
-  category: text('category').notNull(),
-  proficiency: integer('proficiency').notNull().default(50),
-  icon: text('icon'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+// Skills Table
+export const skills = pgTable("skills", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: jsonb("name").$type<{ en: string; fr: string }>().notNull(),
+  category: text("category").notNull(),
+  order: integer("order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Projects table
-export const projects = pgTable('projects', {
-  id: serial('id').primaryKey(),
-  title: text('title').notNull(),
-  description: text('description').notNull(),
-  longDescription: text('long_description'),
-  technologies: jsonb('technologies').notNull().$type<string[]>(),
-  imageUrl: text('image_url'),
-  projectUrl: text('project_url'),
-  githubUrl: text('github_url'),
-  featured: boolean('featured').default(false).notNull(),
-  displayOrder: integer('display_order').default(0).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+// Projects Table
+export const projects = pgTable("projects", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  title: jsonb("title").$type<{ en: string; fr: string }>().notNull(),
+  description: jsonb("description").$type<{ en: string; fr: string }>().notNull(),
+  fullDescription: jsonb("full_description").$type<{ en: string; fr: string }>(),
+  client: text("client"),
+  projectUrl: text("project_url"),
+  githubUrl: text("github_url"),
+  technologies: text("technologies").array(),
+  imageUrl: text("image_url"),
+  color: text("color"),
+  startDate: date("start_date"),
+  endDate: date("end_date"),
+  status: text("status").notNull().default("draft"),
+  featured: boolean("featured").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Work Experience table
-export const workExperience = pgTable('work_experience', {
-  id: serial('id').primaryKey(),
-  company: text('company').notNull(),
-  position: text('position').notNull(),
-  location: text('location'),
-  startDate: text('start_date').notNull(),
-  endDate: text('end_date'),
-  current: boolean('current').default(false).notNull(),
-  description: text('description'),
-  responsibilities: jsonb('responsibilities').$type<string[]>(),
-  technologies: jsonb('technologies').$type<string[]>(),
-  displayOrder: integer('display_order').default(0).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+// Work Experience Table
+export const workExperience = pgTable("work_experience", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  position: jsonb("position").$type<{ en: string; fr: string }>().notNull(),
+  company: jsonb("company").$type<{ en: string; fr: string }>().notNull(),
+  location: jsonb("location").$type<{ en: string; fr: string }>().notNull(),
+  description: jsonb("description").$type<{ en: string; fr: string }>().notNull(),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date"),
+  current: boolean("current").notNull().default(false),
+  order: integer("order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Education table
-export const education = pgTable('education', {
-  id: serial('id').primaryKey(),
-  institution: text('institution').notNull(),
-  degree: text('degree').notNull(),
-  field: text('field').notNull(),
-  location: text('location'),
-  startDate: text('start_date').notNull(),
-  endDate: text('end_date'),
-  current: boolean('current').default(false).notNull(),
-  description: jsonb('description').$type<string[]>(),
-  gpa: text('gpa'),
-  honors: jsonb('honors').$type<string[]>(),
-  displayOrder: integer('display_order').default(0).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+// Education Table
+export const education = pgTable("education", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  degree: jsonb("degree").$type<{ en: string; fr: string }>().notNull(),
+  institution: jsonb("institution").$type<{ en: string; fr: string }>().notNull(),
+  location: jsonb("location").$type<{ en: string; fr: string }>().notNull(),
+  description: jsonb("description").$type<{ en: string; fr: string }>(),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date"),
+  gpa: text("gpa"),
+  order: integer("order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Hobbies table
-export const hobbies = pgTable('hobbies', {
-  id: serial('id').primaryKey(),
-  title: text('title').notNull(),
-  description: text('description').notNull(),
-  icon: text('icon'),
-  imageUrl: text('image_url'),
-  displayOrder: integer('display_order').default(0).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+// Hobbies Table
+export const hobbies = pgTable("hobbies", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  title: jsonb("title").$type<{ en: string; fr: string }>().notNull(),
+  description: jsonb("description").$type<{ en: string; fr: string }>(),
+  imageUrl: text("image_url"),
+  color: text("color"),
+  order: integer("order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Testimonials table
-export const testimonials = pgTable('testimonials', {
-  id: serial('id').primaryKey(),
-  name: text('name').notNull(),
-  position: text('position'),
-  company: text('company'),
-  content: text('content').notNull(),
-  rating: integer('rating').default(5),
-  imageUrl: text('image_url'),
-  approved: boolean('approved').default(false).notNull(),
-  featured: boolean('featured').default(false).notNull(),
-  displayOrder: integer('display_order').default(0).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+// Testimonials Table
+export const testimonials = pgTable("testimonials", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  position: text("position").notNull(),
+  company: text("company"),
+  email: text("email").notNull(),
+  message: text("message").notNull(),
+  rating: integer("rating").notNull(),
+  status: text("status").notNull().default("pending"),
+  submittedAt: timestamp("submitted_at").defaultNow().notNull(),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Resume table
-export const resume = pgTable('resume', {
-  id: serial('id').primaryKey(),
-  fileName: text('file_name').notNull(),
-  fileUrl: text('file_url').notNull(),
-  version: text('version').default('1.0'),
-  language: text('language').default('en'),
-  current: boolean('current').default(true).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+// Contact Messages Table
+export const contactMessages = pgTable("contact_messages", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  status: text("status").notNull().default("unread"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Contact Info table
-export const contactInfo = pgTable('contact_info', {
-  id: serial('id').primaryKey(),
-  email: text('email').notNull(),
-  phone: text('phone'),
-  location: text('location'),
-  linkedin: text('linkedin'),
-  github: text('github'),
-  twitter: text('twitter'),
-  website: text('website'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+// Resume Table
+export const resumes = pgTable("resumes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  filename: text("filename").notNull(),
+  fileUrl: text("file_url").notNull(),
+  isActive: boolean("is_active").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Messages table (contact form submissions)
-export const messages = pgTable('messages', {
-  id: serial('id').primaryKey(),
-  name: text('name').notNull(),
-  email: text('email').notNull(),
-  subject: text('subject'),
-  message: text('message').notNull(),
-  read: boolean('read').default(false).notNull(),
-  ipAddress: text('ip_address'),
-  userAgent: text('user_agent'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+// Contact Information Table
+export const contactInfo = pgTable("contact_info", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  type: text("type").notNull(),
+  value: text("value").notNull(),
+  order: integer("order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+// Export types
+export type Skill = typeof skills.$inferSelect;
+export type NewSkill = typeof skills.$inferInsert;
+
+export type Project = typeof projects.$inferSelect;
+export type NewProject = typeof projects.$inferInsert;
+
+export type WorkExperience = typeof workExperience.$inferSelect;
+export type NewWorkExperience = typeof workExperience.$inferInsert;
+
+export type Education = typeof education.$inferSelect;
+export type NewEducation = typeof education.$inferInsert;
+
+export type Hobby = typeof hobbies.$inferSelect;
+export type NewHobby = typeof hobbies.$inferInsert;
+
+export type Testimonial = typeof testimonials.$inferSelect;
+export type NewTestimonial = typeof testimonials.$inferInsert;
+
+export type ContactMessage = typeof contactMessages.$inferSelect;
+export type NewContactMessage = typeof contactMessages.$inferInsert;
+
+export type Resume = typeof resumes.$inferSelect;
+export type NewResume = typeof resumes.$inferInsert;
+
+export type ContactInfo = typeof contactInfo.$inferSelect;
+export type NewContactInfo = typeof contactInfo.$inferInsert;
