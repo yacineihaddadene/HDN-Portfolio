@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { authClient } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
+import ConfirmModal from '@/components/ConfirmModal';
+import Toast from '@/components/Toast';
+import { useConfirmModal, useToast } from '@/hooks/useModals';
 import { apiClient, WorkExperience } from '@/lib/api/client';
 import { Plus, Edit2, Trash2, Calendar, MapPin } from 'lucide-react';
 
@@ -13,6 +16,9 @@ export default function ExperiencePage() {
   const [experiences, setExperiences] = useState<WorkExperience[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingExperience, setEditingExperience] = useState<WorkExperience | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { confirmModal, showConfirm, hideConfirm } = useConfirmModal();
+  const { toast, showToast, hideToast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
@@ -39,13 +45,24 @@ export default function ExperiencePage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this experience?')) return;
-    try {
-      await apiClient.deleteExperience(id);
-      await loadExperiences();
-    } catch (error: any) {
-      alert(`Failed to delete: ${error.message}`);
-    }
+    showConfirm(
+      'Delete Experience',
+      'Are you sure you want to delete this work experience? This action cannot be undone.',
+      async () => {
+        setIsDeleting(true);
+        try {
+          await apiClient.deleteExperience(id);
+          await loadExperiences();
+          showToast('Experience deleted successfully', 'success');
+        } catch (error: any) {
+          showToast(`Failed to delete: ${error.message}`, 'error');
+        } finally {
+          setIsDeleting(false);
+          hideConfirm();
+        }
+      },
+      'danger'
+    );
   };
 
   if (loading) {
@@ -138,13 +155,35 @@ export default function ExperiencePage() {
             await loadExperiences();
             setShowModal(false);
           }}
+          showToast={showToast}
         />
       )}
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={hideConfirm}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText="Delete"
+        cancelText="Cancel"
+        isLoading={isDeleting}
+      />
+
+      {/* Toast Notification */}
+      <Toast
+        isOpen={toast.isOpen}
+        onClose={hideToast}
+        message={toast.message}
+        type={toast.type}
+      />
     </DashboardLayout>
   );
 }
 
-function ExperienceModal({ experience, onClose, onSave }: any) {
+function ExperienceModal({ experience, onClose, onSave, showToast }: any) {
   const [formData, setFormData] = useState({
     positionEn: experience?.position.en || '',
     positionFr: experience?.position.fr || '',
@@ -160,34 +199,51 @@ function ExperienceModal({ experience, onClose, onSave }: any) {
     order: experience?.order || 0,
   });
   const [saving, setSaving] = useState(false);
+  const { confirmModal, showConfirm, hideConfirm } = useConfirmModal();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
+    
+    const title = experience ? 'Update Experience' : 'Create Experience';
+    const message = experience 
+      ? 'Are you sure you want to update this work experience?' 
+      : 'Are you sure you want to create this work experience?';
 
-    try {
-      const data = {
-        position: { en: formData.positionEn, fr: formData.positionFr },
-        company: { en: formData.companyEn, fr: formData.companyFr },
-        location: { en: formData.locationEn, fr: formData.locationFr },
-        description: { en: formData.descriptionEn, fr: formData.descriptionFr },
-        startDate: formData.startDate,
-        endDate: formData.current ? null : formData.endDate || null,
-        current: formData.current,
-        order: formData.order,
-      };
+    showConfirm(
+      title,
+      message,
+      async () => {
+        setSaving(true);
+        try {
+          const data = {
+            position: { en: formData.positionEn, fr: formData.positionFr },
+            company: { en: formData.companyEn, fr: formData.companyFr },
+            location: { en: formData.locationEn, fr: formData.locationFr },
+            description: { en: formData.descriptionEn, fr: formData.descriptionFr },
+            startDate: formData.startDate,
+            endDate: formData.current ? null : formData.endDate || null,
+            current: formData.current,
+            order: formData.order,
+          };
 
-      if (experience) {
-        await apiClient.updateExperience(experience.id, data);
-      } else {
-        await apiClient.createExperience(data);
-      }
+          if (experience) {
+            await apiClient.updateExperience(experience.id, data);
+            showToast('Experience updated successfully', 'success');
+          } else {
+            await apiClient.createExperience(data);
+            showToast('Experience created successfully', 'success');
+          }
 
-      onSave();
-    } catch (error: any) {
-      alert(`Failed to save: ${error.message}`);
-      setSaving(false);
-    }
+          hideConfirm();
+          onSave();
+        } catch (error: any) {
+          showToast(`Failed to save: ${error.message}`, 'error');
+          setSaving(false);
+          hideConfirm();
+        }
+      },
+      experience ? 'info' : 'success'
+    );
   };
 
   return (
@@ -375,6 +431,19 @@ function ExperienceModal({ experience, onClose, onSave }: any) {
             </button>
           </div>
         </form>
+
+        {/* Confirm Modal for Save */}
+        <ConfirmModal
+          isOpen={confirmModal.isOpen}
+          onClose={hideConfirm}
+          onConfirm={confirmModal.onConfirm}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          type={confirmModal.type}
+          confirmText={experience ? 'Update' : 'Create'}
+          cancelText="Cancel"
+          isLoading={saving}
+        />
       </div>
     </div>
   );

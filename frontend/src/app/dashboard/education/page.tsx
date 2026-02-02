@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { authClient } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
+import ConfirmModal from '@/components/ConfirmModal';
+import Toast from '@/components/Toast';
+import { useConfirmModal, useToast } from '@/hooks/useModals';
 import { apiClient, Education } from '@/lib/api/client';
 import { Plus, Edit2, Trash2, Calendar, MapPin, Award } from 'lucide-react';
 
@@ -13,6 +16,9 @@ export default function EducationPage() {
   const [education, setEducation] = useState<Education[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingEducation, setEditingEducation] = useState<Education | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { confirmModal, showConfirm, hideConfirm } = useConfirmModal();
+  const { toast, showToast, hideToast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
@@ -39,13 +45,24 @@ export default function EducationPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this education entry?')) return;
-    try {
-      await apiClient.deleteEducation(id);
-      await loadEducation();
-    } catch (error: any) {
-      alert(`Failed to delete: ${error.message}`);
-    }
+    showConfirm(
+      'Delete Education',
+      'Are you sure you want to delete this education entry? This action cannot be undone.',
+      async () => {
+        setIsDeleting(true);
+        try {
+          await apiClient.deleteEducation(id);
+          await loadEducation();
+          showToast('Education deleted successfully', 'success');
+        } catch (error: any) {
+          showToast(`Failed to delete: ${error.message}`, 'error');
+        } finally {
+          setIsDeleting(false);
+          hideConfirm();
+        }
+      },
+      'danger'
+    );
   };
 
   if (loading) {
@@ -112,13 +129,39 @@ export default function EducationPage() {
       </div>
 
       {showModal && (
-        <EducationModal education={editingEducation} onClose={() => setShowModal(false)} onSave={async () => { await loadEducation(); setShowModal(false); }} />
+        <EducationModal 
+          education={editingEducation} 
+          onClose={() => setShowModal(false)} 
+          onSave={async () => { await loadEducation(); setShowModal(false); }} 
+          showToast={showToast}
+        />
       )}
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={hideConfirm}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText="Delete"
+        cancelText="Cancel"
+        isLoading={isDeleting}
+      />
+
+      {/* Toast Notification */}
+      <Toast
+        isOpen={toast.isOpen}
+        onClose={hideToast}
+        message={toast.message}
+        type={toast.type}
+      />
     </DashboardLayout>
   );
 }
 
-function EducationModal({ education, onClose, onSave }: any) {
+function EducationModal({ education, onClose, onSave, showToast }: any) {
   const [formData, setFormData] = useState({
     degreeEn: education?.degree.en || '', degreeFr: education?.degree.fr || '',
     institutionEn: education?.institution.en || '', institutionFr: education?.institution.fr || '',
@@ -128,34 +171,53 @@ function EducationModal({ education, onClose, onSave }: any) {
     gpa: education?.gpa || '', order: education?.order || 0,
   });
   const [saving, setSaving] = useState(false);
+  const { confirmModal, showConfirm, hideConfirm } = useConfirmModal();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
-    try {
-      const data: any = {
-        degree: { en: formData.degreeEn, fr: formData.degreeFr },
-        institution: { en: formData.institutionEn, fr: formData.institutionFr },
-        location: { en: formData.locationEn, fr: formData.locationFr },
-        startDate: formData.startDate,
-        endDate: formData.endDate || null,
-        order: formData.order,
-      };
-      if (formData.descriptionEn || formData.descriptionFr) {
-        data.description = { en: formData.descriptionEn, fr: formData.descriptionFr };
-      }
-      if (formData.gpa) data.gpa = formData.gpa;
+    
+    const title = education ? 'Update Education' : 'Create Education';
+    const message = education 
+      ? 'Are you sure you want to update this education entry?' 
+      : 'Are you sure you want to create this education entry?';
 
-      if (education) {
-        await apiClient.updateEducation(education.id, data);
-      } else {
-        await apiClient.createEducation(data);
-      }
-      onSave();
-    } catch (error: any) {
-      alert(`Failed to save: ${error.message}`);
-      setSaving(false);
-    }
+    showConfirm(
+      title,
+      message,
+      async () => {
+        setSaving(true);
+        try {
+          const data: any = {
+            degree: { en: formData.degreeEn, fr: formData.degreeFr },
+            institution: { en: formData.institutionEn, fr: formData.institutionFr },
+            location: { en: formData.locationEn, fr: formData.locationFr },
+            startDate: formData.startDate,
+            endDate: formData.endDate || null,
+            order: formData.order,
+          };
+          if (formData.descriptionEn || formData.descriptionFr) {
+            data.description = { en: formData.descriptionEn, fr: formData.descriptionFr };
+          }
+          if (formData.gpa) data.gpa = formData.gpa;
+
+          if (education) {
+            await apiClient.updateEducation(education.id, data);
+            showToast('Education updated successfully', 'success');
+          } else {
+            await apiClient.createEducation(data);
+            showToast('Education created successfully', 'success');
+          }
+
+          hideConfirm();
+          onSave();
+        } catch (error: any) {
+          showToast(`Failed to save: ${error.message}`, 'error');
+          setSaving(false);
+          hideConfirm();
+        }
+      },
+      education ? 'info' : 'success'
+    );
   };
 
   return (
@@ -200,6 +262,19 @@ function EducationModal({ education, onClose, onSave }: any) {
             <button type="submit" disabled={saving} className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 transition-all shadow-lg hover:shadow-blue-500/50">{saving ? 'Saving...' : 'Save'}</button>
           </div>
         </form>
+
+        {/* Confirm Modal for Save */}
+        <ConfirmModal
+          isOpen={confirmModal.isOpen}
+          onClose={hideConfirm}
+          onConfirm={confirmModal.onConfirm}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          type={confirmModal.type}
+          confirmText={education ? 'Update' : 'Create'}
+          cancelText="Cancel"
+          isLoading={saving}
+        />
       </div>
     </div>
   );

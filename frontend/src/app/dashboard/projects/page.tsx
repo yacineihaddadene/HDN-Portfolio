@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { authClient } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
+import ConfirmModal from '@/components/ConfirmModal';
+import Toast from '@/components/Toast';
+import { useConfirmModal, useToast } from '@/hooks/useModals';
 import { apiClient, Project } from '@/lib/api/client';
 
 export default function ProjectsPage() {
@@ -12,6 +15,9 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { confirmModal, showConfirm, hideConfirm } = useConfirmModal();
+  const { toast, showToast, hideToast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
@@ -38,13 +44,24 @@ export default function ProjectsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this project?')) return;
-    try {
-      await apiClient.deleteProject(id);
-      await loadProjects();
-    } catch (error: any) {
-      alert(`Failed to delete: ${error.message}`);
-    }
+    showConfirm(
+      'Delete Project',
+      'Are you sure you want to delete this project? This action cannot be undone.',
+      async () => {
+        setIsDeleting(true);
+        try {
+          await apiClient.deleteProject(id);
+          await loadProjects();
+          showToast('Project deleted successfully', 'success');
+        } catch (error: any) {
+          showToast(`Failed to delete: ${error.message}`, 'error');
+        } finally {
+          setIsDeleting(false);
+          hideConfirm();
+        }
+      },
+      'danger'
+    );
   };
 
   if (loading) {
@@ -152,13 +169,35 @@ export default function ProjectsPage() {
             await loadProjects();
             setShowModal(false);
           }}
+          showToast={showToast}
         />
       )}
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={hideConfirm}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText="Delete"
+        cancelText="Cancel"
+        isLoading={isDeleting}
+      />
+
+      {/* Toast Notification */}
+      <Toast
+        isOpen={toast.isOpen}
+        onClose={hideToast}
+        message={toast.message}
+        type={toast.type}
+      />
     </DashboardLayout>
   );
 }
 
-function ProjectModal({ project, onClose, onSave }: any) {
+function ProjectModal({ project, onClose, onSave, showToast }: any) {
   const [formData, setFormData] = useState({
     titleEn: project?.title.en || '',
     titleFr: project?.title.fr || '',
@@ -178,47 +217,64 @@ function ProjectModal({ project, onClose, onSave }: any) {
     featured: project?.featured || false,
   });
   const [saving, setSaving] = useState(false);
+  const { confirmModal, showConfirm, hideConfirm } = useConfirmModal();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
+    
+    const title = project ? 'Update Project' : 'Create Project';
+    const message = project 
+      ? 'Are you sure you want to update this project?' 
+      : 'Are you sure you want to create this project?';
 
-    try {
-      const data: any = {
-        title: { en: formData.titleEn, fr: formData.titleFr },
-        description: { en: formData.descriptionEn, fr: formData.descriptionFr },
-        status: formData.status,
-        featured: formData.featured,
-      };
+    showConfirm(
+      title,
+      message,
+      async () => {
+        setSaving(true);
+        try {
+          const data: any = {
+            title: { en: formData.titleEn, fr: formData.titleFr },
+            description: { en: formData.descriptionEn, fr: formData.descriptionFr },
+            status: formData.status,
+            featured: formData.featured,
+          };
 
-      if (formData.fullDescriptionEn || formData.fullDescriptionFr) {
-        data.fullDescription = {
-          en: formData.fullDescriptionEn,
-          fr: formData.fullDescriptionFr,
-        };
-      }
-      if (formData.client) data.client = formData.client;
-      if (formData.projectUrl) data.projectUrl = formData.projectUrl;
-      if (formData.githubUrl) data.githubUrl = formData.githubUrl;
-      if (formData.technologies) {
-        data.technologies = formData.technologies.split(',').map((t: string) => t.trim()).filter(Boolean);
-      }
-      if (formData.imageUrl) data.imageUrl = formData.imageUrl;
-      if (formData.color) data.color = formData.color;
-      if (formData.startDate) data.startDate = formData.startDate;
-      if (formData.endDate) data.endDate = formData.endDate;
+          if (formData.fullDescriptionEn || formData.fullDescriptionFr) {
+            data.fullDescription = {
+              en: formData.fullDescriptionEn,
+              fr: formData.fullDescriptionFr,
+            };
+          }
+          if (formData.client) data.client = formData.client;
+          if (formData.projectUrl) data.projectUrl = formData.projectUrl;
+          if (formData.githubUrl) data.githubUrl = formData.githubUrl;
+          if (formData.technologies) {
+            data.technologies = formData.technologies.split(',').map((t: string) => t.trim()).filter(Boolean);
+          }
+          if (formData.imageUrl) data.imageUrl = formData.imageUrl;
+          if (formData.color) data.color = formData.color;
+          if (formData.startDate) data.startDate = formData.startDate;
+          if (formData.endDate) data.endDate = formData.endDate;
 
-      if (project) {
-        await apiClient.updateProject(project.id, data);
-      } else {
-        await apiClient.createProject(data);
-      }
+          if (project) {
+            await apiClient.updateProject(project.id, data);
+            showToast('Project updated successfully', 'success');
+          } else {
+            await apiClient.createProject(data);
+            showToast('Project created successfully', 'success');
+          }
 
-      onSave();
-    } catch (error: any) {
-      alert(`Failed to save: ${error.message}`);
-      setSaving(false);
-    }
+          hideConfirm();
+          onSave();
+        } catch (error: any) {
+          showToast(`Failed to save: ${error.message}`, 'error');
+          setSaving(false);
+          hideConfirm();
+        }
+      },
+      project ? 'info' : 'success'
+    );
   };
 
   return (
@@ -439,6 +495,19 @@ function ProjectModal({ project, onClose, onSave }: any) {
             </button>
           </div>
         </form>
+
+        {/* Confirm Modal for Save */}
+        <ConfirmModal
+          isOpen={confirmModal.isOpen}
+          onClose={hideConfirm}
+          onConfirm={confirmModal.onConfirm}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          type={confirmModal.type}
+          confirmText={project ? 'Update' : 'Create'}
+          cancelText="Cancel"
+          isLoading={saving}
+        />
       </div>
     </div>
   );

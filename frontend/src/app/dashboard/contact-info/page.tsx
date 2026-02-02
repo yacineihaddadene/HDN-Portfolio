@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { authClient } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
+import ConfirmModal from '@/components/ConfirmModal';
+import Toast from '@/components/Toast';
+import { useConfirmModal, useToast } from '@/hooks/useModals';
 import { apiClient, ContactInfo } from '@/lib/api/client';
 import { Plus, Edit2, Trash2, Mail, Phone, MapPin, Share2 } from 'lucide-react';
 
@@ -13,6 +16,9 @@ export default function ContactInfoPage() {
   const [contactInfo, setContactInfo] = useState<ContactInfo[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingInfo, setEditingInfo] = useState<ContactInfo | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { confirmModal, showConfirm, hideConfirm } = useConfirmModal();
+  const { toast, showToast, hideToast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
@@ -39,13 +45,24 @@ export default function ContactInfoPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this contact info?')) return;
-    try {
-      await apiClient.deleteContactInfo(id);
-      await loadContactInfo();
-    } catch (error: any) {
-      alert(`Failed to delete: ${error.message}`);
-    }
+    showConfirm(
+      'Delete Contact Info',
+      'Are you sure you want to delete this contact information? This action cannot be undone.',
+      async () => {
+        setIsDeleting(true);
+        try {
+          await apiClient.deleteContactInfo(id);
+          await loadContactInfo();
+          showToast('Contact info deleted successfully', 'success');
+        } catch (error: any) {
+          showToast(`Failed to delete: ${error.message}`, 'error');
+        } finally {
+          setIsDeleting(false);
+          hideConfirm();
+        }
+      },
+      'danger'
+    );
   };
 
   if (loading) return <div className="flex min-h-screen items-center justify-center bg-black"><div className="text-white">Loading...</div></div>;
@@ -115,12 +132,33 @@ export default function ContactInfoPage() {
         </div>
       </div>
 
-      {showModal && <ContactInfoModal info={editingInfo} onClose={() => setShowModal(false)} onSave={async () => { await loadContactInfo(); setShowModal(false); }} />}
+      {showModal && <ContactInfoModal info={editingInfo} onClose={() => setShowModal(false)} onSave={async () => { await loadContactInfo(); setShowModal(false); }} showToast={showToast} />}
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={hideConfirm}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText="Delete"
+        cancelText="Cancel"
+        isLoading={isDeleting}
+      />
+
+      {/* Toast Notification */}
+      <Toast
+        isOpen={toast.isOpen}
+        onClose={hideToast}
+        message={toast.message}
+        type={toast.type}
+      />
     </DashboardLayout>
   );
 }
 
-function ContactInfoModal({ info, onClose, onSave }: any) {
+function ContactInfoModal({ info, onClose, onSave, showToast }: any) {
   const [formData, setFormData] = useState({
     type: info?.type || 'email',
     value: info?.value || '',
@@ -139,7 +177,7 @@ function ContactInfoModal({ info, onClose, onSave }: any) {
       }
       onSave();
     } catch (error: any) {
-      alert(`Failed to save: ${error.message}`);
+      showToast(`Failed to save: ${error.message}`, 'error');
       setSaving(false);
     }
   };

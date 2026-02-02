@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { authClient } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
+import ConfirmModal from '@/components/ConfirmModal';
+import Toast from '@/components/Toast';
+import { useConfirmModal, useToast } from '@/hooks/useModals';
 import { apiClient, Skill } from '@/lib/api/client';
 
 export default function SkillsPage() {
@@ -12,6 +15,9 @@ export default function SkillsPage() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingSkill, setEditingSkill] = useState<Skill | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { confirmModal, showConfirm, hideConfirm } = useConfirmModal();
+  const { toast, showToast, hideToast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
@@ -38,13 +44,24 @@ export default function SkillsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this skill?')) return;
-    try {
-      await apiClient.deleteSkill(id);
-      await loadSkills();
-    } catch (error: any) {
-      alert(`Failed to delete: ${error.message}`);
-    }
+    showConfirm(
+      'Delete Skill',
+      'Are you sure you want to delete this skill? This action cannot be undone.',
+      async () => {
+        setIsDeleting(true);
+        try {
+          await apiClient.deleteSkill(id);
+          await loadSkills();
+          showToast('Skill deleted successfully', 'success');
+        } catch (error: any) {
+          showToast(`Failed to delete: ${error.message}`, 'error');
+        } finally {
+          setIsDeleting(false);
+          hideConfirm();
+        }
+      },
+      'danger'
+    );
   };
 
   const handleEdit = (skill: Skill) => {
@@ -159,13 +176,35 @@ export default function SkillsPage() {
             await loadSkills();
             setShowModal(false);
           }}
+          showToast={showToast}
         />
       )}
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={hideConfirm}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText="Delete"
+        cancelText="Cancel"
+        isLoading={isDeleting}
+      />
+
+      {/* Toast Notification */}
+      <Toast
+        isOpen={toast.isOpen}
+        onClose={hideToast}
+        message={toast.message}
+        type={toast.type}
+      />
     </DashboardLayout>
   );
 }
 
-function SkillModal({ skill, onClose, onSave }: any) {
+function SkillModal({ skill, onClose, onSave, showToast }: any) {
   const [formData, setFormData] = useState({
     nameEn: skill?.name.en || '',
     nameFr: skill?.name.fr || '',
@@ -173,29 +212,47 @@ function SkillModal({ skill, onClose, onSave }: any) {
     order: skill?.order || 0,
   });
   const [saving, setSaving] = useState(false);
+  const { confirmModal, showConfirm, hideConfirm } = useConfirmModal();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
+    
+    const action = skill ? 'update' : 'create';
+    const title = skill ? 'Update Skill' : 'Create Skill';
+    const message = skill 
+      ? 'Are you sure you want to update this skill?' 
+      : 'Are you sure you want to create this skill?';
 
-    try {
-      const data = {
-        name: { en: formData.nameEn, fr: formData.nameFr },
-        category: formData.category,
-        order: formData.order,
-      };
+    showConfirm(
+      title,
+      message,
+      async () => {
+        setSaving(true);
+        try {
+          const data = {
+            name: { en: formData.nameEn, fr: formData.nameFr },
+            category: formData.category,
+            order: formData.order,
+          };
 
-      if (skill) {
-        await apiClient.updateSkill(skill.id, data);
-      } else {
-        await apiClient.createSkill(data);
-      }
+          if (skill) {
+            await apiClient.updateSkill(skill.id, data);
+            showToast('Skill updated successfully', 'success');
+          } else {
+            await apiClient.createSkill(data);
+            showToast('Skill created successfully', 'success');
+          }
 
-      onSave();
-    } catch (error: any) {
-      alert(`Failed to save: ${error.message}`);
-      setSaving(false);
-    }
+          hideConfirm();
+          onSave();
+        } catch (error: any) {
+          showToast(`Failed to save: ${error.message}`, 'error');
+          setSaving(false);
+          hideConfirm();
+        }
+      },
+      skill ? 'info' : 'success'
+    );
   };
 
   return (
@@ -276,6 +333,19 @@ function SkillModal({ skill, onClose, onSave }: any) {
             </button>
           </div>
         </form>
+
+        {/* Confirm Modal for Save */}
+        <ConfirmModal
+          isOpen={confirmModal.isOpen}
+          onClose={hideConfirm}
+          onConfirm={confirmModal.onConfirm}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          type={confirmModal.type}
+          confirmText={skill ? 'Update' : 'Create'}
+          cancelText="Cancel"
+          isLoading={saving}
+        />
       </div>
     </div>
   );

@@ -8,6 +8,8 @@ import { Mail, Phone, MapPin, Link as LinkIcon, Github, ExternalLink, Star, Down
 
 export default function Home() {
   const [lang, setLang] = useState<'en' | 'fr'>('en');
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [activeSection, setActiveSection] = useState('');
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({
     projects: [] as Project[],
@@ -28,6 +30,42 @@ export default function Home() {
   useEffect(() => {
     loadResume();
   }, [lang]);
+
+  // Scroll progress and active section tracking
+  useEffect(() => {
+    const handleScroll = () => {
+      // Calculate scroll progress
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      const scrollTop = window.scrollY;
+      const trackLength = documentHeight - windowHeight;
+      const progress = (scrollTop / trackLength) * 100;
+      setScrollProgress(progress);
+
+      // Determine active section
+      const sections = ['projects', 'skills', 'experience', 'education', 'hobbies', 'resume', 'contact'];
+      let currentSection = '';
+      
+      for (const section of sections) {
+        const element = document.getElementById(section);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          // Check if section is in viewport (accounting for navbar)
+          if (rect.top <= 100 && rect.bottom >= 100) {
+            currentSection = section;
+            break;
+          }
+        }
+      }
+      
+      setActiveSection(currentSection);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Initial call
+    
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const loadResume = async () => {
     try {
@@ -130,46 +168,119 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-black">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-black/95 backdrop-blur-md border-b border-gray-800 z-50">
+      <nav className="fixed top-0 w-full bg-black/95 backdrop-blur-md border-b border-gray-800 z-50 transition-all duration-300">
+        {/* Scroll Progress Bar */}
+        <div 
+          className="absolute top-0 left-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 transition-all duration-150 ease-out"
+          style={{ width: `${scrollProgress}%` }}
+        ></div>
+        
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <h1 className="text-2xl font-bold gradient-text">
+            <h1 className="text-2xl font-bold gradient-text cursor-pointer hover:scale-105 transition-transform duration-200">
               Portfolio
             </h1>
             <div className="flex items-center gap-6">
-              <a href="#about" className="text-gray-300 hover:text-blue-400 transition-colors">
-                {t('About', 'À propos')}
+              <a 
+                href="#projects" 
+                className={`relative transition-all duration-300 group py-1 ${
+                  activeSection === 'projects' 
+                    ? 'text-blue-400 font-medium' 
+                    : 'text-gray-300 hover:text-blue-400'
+                }`}
+              >
+                <span className="relative z-10">{t('Projects', 'Projets')}</span>
+                <span className={`absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 ${
+                  activeSection === 'projects' ? 'w-full' : 'w-0 group-hover:w-full'
+                }`}></span>
               </a>
-              <a href="#projects" className="text-gray-300 hover:text-blue-400 transition-colors">
-                {t('Projects', 'Projets')}
+              <a 
+                href="#skills" 
+                className={`relative transition-all duration-300 group py-1 ${
+                  activeSection === 'skills' 
+                    ? 'text-blue-400 font-medium' 
+                    : 'text-gray-300 hover:text-blue-400'
+                }`}
+              >
+                <span className="relative z-10">{t('Skills', 'Compétences')}</span>
+                <span className={`absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 ${
+                  activeSection === 'skills' ? 'w-full' : 'w-0 group-hover:w-full'
+                }`}></span>
               </a>
-              <a href="#skills" className="text-gray-300 hover:text-blue-400 transition-colors">
-                {t('Skills', 'Compétences')}
+              <a 
+                href="#experience" 
+                className={`relative transition-all duration-300 group py-1 ${
+                  activeSection === 'experience' 
+                    ? 'text-blue-400 font-medium' 
+                    : 'text-gray-300 hover:text-blue-400'
+                }`}
+              >
+                <span className="relative z-10">{t('Experience', 'Expérience')}</span>
+                <span className={`absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 ${
+                  activeSection === 'experience' ? 'w-full' : 'w-0 group-hover:w-full'
+                }`}></span>
               </a>
-              <a href="#experience" className="text-gray-300 hover:text-blue-400 transition-colors">
-                {t('Experience', 'Expérience')}
+              <a 
+                href="#education" 
+                className={`relative transition-all duration-300 group py-1 ${
+                  activeSection === 'education' 
+                    ? 'text-blue-400 font-medium' 
+                    : 'text-gray-300 hover:text-blue-400'
+                }`}
+              >
+                <span className="relative z-10">{t('Education', 'Formation')}</span>
+                <span className={`absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 ${
+                  activeSection === 'education' ? 'w-full' : 'w-0 group-hover:w-full'
+                }`}></span>
               </a>
-              <a href="#education" className="text-gray-300 hover:text-blue-400 transition-colors">
-                {t('Education', 'Formation')}
+              <a 
+                href="#hobbies" 
+                className={`relative transition-all duration-300 group py-1 ${
+                  activeSection === 'hobbies' 
+                    ? 'text-blue-400 font-medium' 
+                    : 'text-gray-300 hover:text-blue-400'
+                }`}
+              >
+                <span className="relative z-10">{t('Hobbies', 'Loisirs')}</span>
+                <span className={`absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 ${
+                  activeSection === 'hobbies' ? 'w-full' : 'w-0 group-hover:w-full'
+                }`}></span>
               </a>
-              <a href="#hobbies" className="text-gray-300 hover:text-blue-400 transition-colors">
-                {t('Hobbies', 'Loisirs')}
+              <a 
+                href="#resume" 
+                className={`relative transition-all duration-300 group py-1 ${
+                  activeSection === 'resume' 
+                    ? 'text-blue-400 font-medium' 
+                    : 'text-gray-300 hover:text-blue-400'
+                }`}
+              >
+                <span className="relative z-10">{t('Resume', 'CV')}</span>
+                <span className={`absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 ${
+                  activeSection === 'resume' ? 'w-full' : 'w-0 group-hover:w-full'
+                }`}></span>
               </a>
-              <a href="#resume" className="text-gray-300 hover:text-blue-400 transition-colors">
-                {t('Resume', 'CV')}
-              </a>
-              <a href="#contact" className="text-gray-300 hover:text-blue-400 transition-colors">
-                {t('Contact', 'Contact')}
+              <a 
+                href="#contact" 
+                className={`relative transition-all duration-300 group py-1 ${
+                  activeSection === 'contact' 
+                    ? 'text-blue-400 font-medium' 
+                    : 'text-gray-300 hover:text-blue-400'
+                }`}
+              >
+                <span className="relative z-10">{t('Contact', 'Contact')}</span>
+                <span className={`absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 ${
+                  activeSection === 'contact' ? 'w-full' : 'w-0 group-hover:w-full'
+                }`}></span>
               </a>
               <button
                 onClick={() => setLang(lang === 'en' ? 'fr' : 'en')}
-                className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 text-sm font-medium hover:bg-blue-500/30 transition-all border border-blue-500/30"
+                className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 text-sm font-medium hover:bg-blue-500/30 transition-all duration-300 border border-blue-500/30 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20"
               >
                 {lang === 'en' ? 'FR' : 'EN'}
               </button>
               <Link
                 href="/dashboard"
-                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all text-sm font-medium shadow-lg shadow-blue-500/20"
+                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-300 text-sm font-medium shadow-lg shadow-blue-500/20 hover:scale-105 hover:shadow-xl hover:shadow-blue-500/30"
               >
                 {t('Admin', 'Admin')}
               </Link>

@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { authClient } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
+import ConfirmModal from '@/components/ConfirmModal';
+import Toast from '@/components/Toast';
+import { useConfirmModal, useToast } from '@/hooks/useModals';
 import { apiClient, Hobby } from '@/lib/api/client';
 import { Plus, Edit2, Trash2, Image as ImageIcon } from 'lucide-react';
 
@@ -13,6 +16,9 @@ export default function HobbiesPage() {
   const [hobbies, setHobbies] = useState<Hobby[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingHobby, setEditingHobby] = useState<Hobby | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { confirmModal, showConfirm, hideConfirm } = useConfirmModal();
+  const { toast, showToast, hideToast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
@@ -39,13 +45,24 @@ export default function HobbiesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this hobby?')) return;
-    try {
-      await apiClient.deleteHobby(id);
-      await loadHobbies();
-    } catch (error: any) {
-      alert(`Failed to delete: ${error.message}`);
-    }
+    showConfirm(
+      'Delete Hobby',
+      'Are you sure you want to delete this hobby? This action cannot be undone.',
+      async () => {
+        setIsDeleting(true);
+        try {
+          await apiClient.deleteHobby(id);
+          await loadHobbies();
+          showToast('Hobby deleted successfully', 'success');
+        } catch (error: any) {
+          showToast(`Failed to delete: ${error.message}`, 'error');
+        } finally {
+          setIsDeleting(false);
+          hideConfirm();
+        }
+      },
+      'danger'
+    );
   };
 
   if (loading) return <div className="flex min-h-screen items-center justify-center bg-black"><div className="text-white">Loading...</div></div>;
@@ -89,12 +106,33 @@ export default function HobbiesPage() {
         </div>
       </div>
 
-      {showModal && <HobbyModal hobby={editingHobby} onClose={() => setShowModal(false)} onSave={async () => { await loadHobbies(); setShowModal(false); }} />}
+      {showModal && <HobbyModal hobby={editingHobby} onClose={() => setShowModal(false)} onSave={async () => { await loadHobbies(); setShowModal(false); }} showToast={showToast} />}
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={hideConfirm}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText="Delete"
+        cancelText="Cancel"
+        isLoading={isDeleting}
+      />
+
+      {/* Toast Notification */}
+      <Toast
+        isOpen={toast.isOpen}
+        onClose={hideToast}
+        message={toast.message}
+        type={toast.type}
+      />
     </DashboardLayout>
   );
 }
 
-function HobbyModal({ hobby, onClose, onSave }: any) {
+function HobbyModal({ hobby, onClose, onSave, showToast }: any) {
   const [formData, setFormData] = useState({
     titleEn: hobby?.title.en || '', titleFr: hobby?.title.fr || '',
     descriptionEn: hobby?.description?.en || '', descriptionFr: hobby?.description?.fr || '',
@@ -121,7 +159,7 @@ function HobbyModal({ hobby, onClose, onSave }: any) {
       else await apiClient.createHobby(data);
       onSave();
     } catch (error: any) {
-      alert(`Failed to save: ${error.message}`);
+      showToast(`Failed to save: ${error.message}`, 'error');
       setSaving(false);
     }
   };

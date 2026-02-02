@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { authClient } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
+import ConfirmModal from '@/components/ConfirmModal';
+import Toast from '@/components/Toast';
+import { useConfirmModal, useToast } from '@/hooks/useModals';
 import { apiClient, Testimonial } from '@/lib/api/client';
 import { Check, X, Trash2, Star, User } from 'lucide-react';
 
@@ -12,6 +15,9 @@ export default function TestimonialsPage() {
   const [loading, setLoading] = useState(true);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [filter, setFilter] = useState<string>('all');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { confirmModal, showConfirm, hideConfirm } = useConfirmModal();
+  const { toast, showToast, hideToast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
@@ -46,8 +52,9 @@ export default function TestimonialsPage() {
     try {
       await apiClient.approveTestimonial(id);
       await loadTestimonials(filter);
+      showToast('Testimonial approved successfully', 'success');
     } catch (error: any) {
-      alert(`Failed to approve: ${error.message}`);
+      showToast(`Failed to approve: ${error.message}`, 'error');
     }
   };
 
@@ -55,19 +62,31 @@ export default function TestimonialsPage() {
     try {
       await apiClient.rejectTestimonial(id);
       await loadTestimonials(filter);
+      showToast('Testimonial rejected', 'info');
     } catch (error: any) {
-      alert(`Failed to reject: ${error.message}`);
+      showToast(`Failed to reject: ${error.message}`, 'error');
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this testimonial?')) return;
-    try {
-      await apiClient.deleteTestimonial(id);
-      await loadTestimonials(filter);
-    } catch (error: any) {
-      alert(`Failed to delete: ${error.message}`);
-    }
+    showConfirm(
+      'Delete Testimonial',
+      'Are you sure you want to delete this testimonial? This action cannot be undone.',
+      async () => {
+        setIsDeleting(true);
+        try {
+          await apiClient.deleteTestimonial(id);
+          await loadTestimonials(filter);
+          showToast('Testimonial deleted successfully', 'success');
+        } catch (error: any) {
+          showToast(`Failed to delete: ${error.message}`, 'error');
+        } finally {
+          setIsDeleting(false);
+          hideConfirm();
+        }
+      },
+      'danger'
+    );
   };
 
   const pendingCount = testimonials.filter(t => t.status === 'pending').length;
@@ -196,6 +215,27 @@ export default function TestimonialsPage() {
           )}
         </div>
       </div>
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={hideConfirm}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText="Delete"
+        cancelText="Cancel"
+        isLoading={isDeleting}
+      />
+
+      {/* Toast Notification */}
+      <Toast
+        isOpen={toast.isOpen}
+        onClose={hideToast}
+        message={toast.message}
+        type={toast.type}
+      />
     </DashboardLayout>
   );
 }

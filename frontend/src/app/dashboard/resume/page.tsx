@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { authClient } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
+import ConfirmModal from '@/components/ConfirmModal';
+import Toast from '@/components/Toast';
+import { useConfirmModal, useToast } from '@/hooks/useModals';
 import { apiClient, Resume } from '@/lib/api/client';
 import { Plus, Download, Edit2, Trash2, FileText, CheckCircle, XCircle, Upload } from 'lucide-react';
 
@@ -13,6 +16,9 @@ export default function ResumePage() {
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingResume, setEditingResume] = useState<Resume | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { confirmModal, showConfirm, hideConfirm } = useConfirmModal();
+  const { toast, showToast, hideToast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
@@ -39,21 +45,33 @@ export default function ResumePage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this resume?')) return;
-    try {
-      await apiClient.deleteResume(id);
-      await loadResumes();
-    } catch (error: any) {
-      alert(`Failed to delete: ${error.message}`);
-    }
+    showConfirm(
+      'Delete Resume',
+      'Are you sure you want to delete this resume? This action cannot be undone.',
+      async () => {
+        setIsDeleting(true);
+        try {
+          await apiClient.deleteResume(id);
+          await loadResumes();
+          showToast('Resume deleted successfully', 'success');
+        } catch (error: any) {
+          showToast(`Failed to delete: ${error.message}`, 'error');
+        } finally {
+          setIsDeleting(false);
+          hideConfirm();
+        }
+      },
+      'danger'
+    );
   };
 
   const handleToggleActive = async (id: string, isActive: boolean) => {
     try {
       await apiClient.updateResume(id, { isActive: !isActive });
       await loadResumes();
+      showToast(`Resume ${!isActive ? 'activated' : 'deactivated'} successfully`, 'success');
     } catch (error: any) {
-      alert(`Failed to update: ${error.message}`);
+      showToast(`Failed to update: ${error.message}`, 'error');
     }
   };
 
@@ -132,12 +150,33 @@ export default function ResumePage() {
         </div>
       </div>
 
-      {showModal && <ResumeModal resume={editingResume} onClose={() => setShowModal(false)} onSave={async () => { await loadResumes(); setShowModal(false); }} />}
+      {showModal && <ResumeModal resume={editingResume} onClose={() => setShowModal(false)} onSave={async () => { await loadResumes(); setShowModal(false); }} showToast={showToast} />}
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={hideConfirm}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText="Delete"
+        cancelText="Cancel"
+        isLoading={isDeleting}
+      />
+
+      {/* Toast Notification */}
+      <Toast
+        isOpen={toast.isOpen}
+        onClose={hideToast}
+        message={toast.message}
+        type={toast.type}
+      />
     </DashboardLayout>
   );
 }
 
-function ResumeModal({ resume, onClose, onSave }: any) {
+function ResumeModal({ resume, onClose, onSave, showToast }: any) {
   const [formData, setFormData] = useState({
     filename: resume?.filename || '',
     fileUrl: resume?.fileUrl || '',
@@ -153,11 +192,11 @@ function ResumeModal({ resume, onClose, onSave }: any) {
     const file = e.target.files?.[0];
     if (file) {
       if (file.type !== 'application/pdf') {
-        alert('Please upload a PDF file');
+        showToast('Please upload a PDF file', 'warning');
         return;
       }
       if (file.size > 10 * 1024 * 1024) { // 10MB limit
-        alert('File size must be less than 10MB');
+        showToast('File size must be less than 10MB', 'warning');
         return;
       }
       setSelectedFile(file);
@@ -181,11 +220,11 @@ function ResumeModal({ resume, onClose, onSave }: any) {
     const file = e.dataTransfer.files?.[0];
     if (file) {
       if (file.type !== 'application/pdf') {
-        alert('Please upload a PDF file');
+        showToast('Please upload a PDF file', 'warning');
         return;
       }
       if (file.size > 10 * 1024 * 1024) {
-        alert('File size must be less than 10MB');
+        showToast('File size must be less than 10MB', 'warning');
         return;
       }
       setSelectedFile(file);
@@ -219,7 +258,7 @@ function ResumeModal({ resume, onClose, onSave }: any) {
       }
       onSave();
     } catch (error: any) {
-      alert(`Failed to save: ${error.message}`);
+      showToast(`Failed to save: ${error.message}`, 'error');
       setSaving(false);
     }
   };
