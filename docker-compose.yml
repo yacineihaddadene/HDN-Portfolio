@@ -62,6 +62,12 @@ services:
       AUTH_JWT_SECRET: ${AUTH_JWT_SECRET}
       AUTH_SERVICE_URL: http://auth-service:3001
       CORS_ORIGINS: ${CORS_ORIGINS}
+      # DigitalOcean Spaces Configuration
+      DO_SPACES_KEY: ${DO_SPACES_KEY}
+      DO_SPACES_SECRET: ${DO_SPACES_SECRET}
+      DO_SPACES_BUCKET: ${DO_SPACES_BUCKET}
+      DO_SPACES_REGION: ${DO_SPACES_REGION}
+      DO_SPACES_ENDPOINT: ${DO_SPACES_ENDPOINT}
     depends_on:
       app-db:
         condition: service_healthy

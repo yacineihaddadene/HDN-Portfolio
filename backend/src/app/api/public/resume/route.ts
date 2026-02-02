@@ -17,15 +17,21 @@ export async function GET(request: NextRequest) {
 
     if (activeResume.length === 0) {
       return NextResponse.json(
-        { error: "No active resume found" },
-        { status: 404 }
+        { resume: null },
+        { status: 200 }
       );
     }
 
     const resume = activeResume[0];
     return NextResponse.json({
-      filename: resume.filename,
-      file_url: resume.fileUrl,
+      resume: {
+        id: resume.id,
+        filename: resume.filename,
+        fileUrl: resume.fileUrl,
+        isActive: resume.isActive,
+        createdAt: resume.createdAt.toISOString(),
+        updatedAt: resume.updatedAt.toISOString(),
+      }
     });
   } catch (error) {
     console.error("Error fetching resume:", error);

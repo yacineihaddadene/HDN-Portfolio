@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, resumes } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth/jwt-verification";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { validateNotEmpty, validateURL, sanitizeText } from "@/lib/utils/validation";
 
 export async function GET(request: NextRequest) {
@@ -11,22 +11,69 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Get active resume
-    const activeResume = await db
+    // Get all resumes, ordered by creation date (newest first)
+    const allResumes = await db
       .select()
       .from(resumes)
-      .where(eq(resumes.isActive, true))
-      .limit(1);
+      .orderBy(desc(resumes.createdAt));
 
-    if (activeResume.length === 0) {
-      return NextResponse.json({ resume: null });
+    return NextResponse.json({ resumes: allResumes });
+  } catch (error) {
+    console.error("Error fetching resumes:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch resumes" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  const authResult = requireAdmin(request);
+  if (authResult instanceof NextResponse) {
+    return authResult;
+  }
+
+  try {
+    const body = await request.json();
+    const { filename, fileUrl, isActive } = body;
+
+    // Validation
+    if (!validateNotEmpty(filename)) {
+      return NextResponse.json(
+        { error: "Filename is required" },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json({ resume: activeResume[0] });
+    if (!validateURL(fileUrl)) {
+      return NextResponse.json(
+        { error: "Valid file URL is required" },
+        { status: 400 }
+      );
+    }
+
+    const sanitizedFilename = sanitizeText(filename);
+
+    // If setting this as active, deactivate all others first
+    if (isActive) {
+      await db.update(resumes).set({ isActive: false });
+    }
+
+    // Create new resume
+    const [newResume] = await db
+      .insert(resumes)
+      .values({
+        filename: sanitizedFilename,
+        fileUrl,
+        isActive: isActive || false,
+      })
+      .returning();
+
+    return NextResponse.json({ resume: newResume }, { status: 201 });
   } catch (error) {
-    console.error("Error fetching resume:", error);
+    console.error("Error creating resume:", error);
     return NextResponse.json(
-      { error: "Failed to fetch resume" },
+      { error: "Failed to create resume" },
       { status: 500 }
     );
   }

@@ -449,6 +449,35 @@ export class ApiClient {
     return this.request<{ resumes: Resume[] }>('/api/admin/resume');
   }
 
+  async uploadResumeFile(file: File): Promise<{ filename: string; fileUrl: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // Get auth token for admin endpoint
+    const token = await this.getAuthToken();
+    
+    const headers: Record<string, string> = {};
+    
+    // Add Authorization header if token exists
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    const response = await fetch(`${this.baseUrl}/api/admin/resume/upload`, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+      headers: headers,
+    });
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Upload failed' }));
+      throw new Error(error.error || 'Upload failed');
+    }
+    
+    return response.json();
+  }
+
   async createResume(data: Partial<Resume>) {
     return this.request<{ resume: Resume }>('/api/admin/resume', {
       method: 'POST',

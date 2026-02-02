@@ -5,7 +5,7 @@ import { authClient } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import { apiClient, Resume } from '@/lib/api/client';
-import { Plus, Download, Edit2, Trash2, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Download, Edit2, Trash2, FileText, CheckCircle, XCircle, Upload } from 'lucide-react';
 
 export default function ResumePage() {
   const [user, setUser] = useState<any>(null);
@@ -138,15 +138,76 @@ function ResumeModal({ resume, onClose, onSave }: any) {
     isActive: resume?.isActive || false,
   });
   const [saving, setSaving] = useState(false);
+  const [uploadMode, setUploadMode] = useState<'url' | 'file'>('file');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.type !== 'application/pdf') {
+        alert('Please upload a PDF file');
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        alert('File size must be less than 10MB');
+        return;
+      }
+      setSelectedFile(file);
+      setFormData({ ...formData, filename: file.name });
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      if (file.type !== 'application/pdf') {
+        alert('Please upload a PDF file');
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File size must be less than 10MB');
+        return;
+      }
+      setSelectedFile(file);
+      setFormData({ ...formData, filename: file.name });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
+      let fileUrl = formData.fileUrl;
+
+      // If file upload mode and a file is selected, upload to DigitalOcean Spaces
+      if (uploadMode === 'file' && selectedFile) {
+        const uploadResult = await apiClient.uploadResumeFile(selectedFile);
+        fileUrl = uploadResult.fileUrl;
+      }
+
+      const dataToSave = {
+        filename: formData.filename,
+        fileUrl: fileUrl,
+        isActive: formData.isActive,
+      };
+
       if (resume) {
-        await apiClient.updateResume(resume.id, formData);
+        await apiClient.updateResume(resume.id, dataToSave);
       } else {
-        await apiClient.createResume(formData);
+        await apiClient.createResume(dataToSave);
       }
       onSave();
     } catch (error: any) {
@@ -157,25 +218,164 @@ function ResumeModal({ resume, onClose, onSave }: any) {
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-950 border border-gray-800 rounded-lg p-6 w-full max-w-md shadow-2xl">
-        <h3 className="text-xl font-bold mb-4 text-white">{resume ? 'Edit Resume' : 'Add Resume'}</h3>
+      <div className="bg-gray-950 border border-gray-800 rounded-lg p-6 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+        <h3 className="text-xl font-bold mb-4 text-white">{resume ? 'Edit Resume' : 'Upload Resume'}</h3>
+        
+        {/* Upload Mode Toggle */}
+        <div className="flex gap-2 mb-4">
+          <button
+            type="button"
+            onClick={() => setUploadMode('file')}
+            className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+              uploadMode === 'file'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-900 text-gray-400 hover:bg-gray-800'
+            }`}
+          >
+            Upload File
+          </button>
+          <button
+            type="button"
+            onClick={() => setUploadMode('url')}
+            className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+              uploadMode === 'url'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-900 text-gray-400 hover:bg-gray-800'
+            }`}
+          >
+            Use URL
+          </button>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Filename *</label>
-            <input type="text" required value={formData.filename} onChange={(e) => setFormData({ ...formData, filename: e.target.value })} className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="My_Resume.pdf" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">File URL *</label>
-            <input type="url" required value={formData.fileUrl} onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })} className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="https://example.com/resume.pdf" />
-            <p className="text-xs text-gray-500 mt-1">Upload your resume to a file hosting service and paste the URL here.</p>
-          </div>
+          {uploadMode === 'file' ? (
+            <>
+              {/* File Upload Area */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Upload PDF File</label>
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer ${
+                    isDragging
+                      ? 'border-blue-500 bg-blue-500/10'
+                      : 'border-gray-700 hover:border-gray-600'
+                  }`}
+                >
+                  {selectedFile ? (
+                    <div className="space-y-2">
+                      <FileText className="w-12 h-12 mx-auto text-blue-400" />
+                      <p className="text-sm text-gray-300 font-medium">{selectedFile.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedFile(null)}
+                        className="text-xs text-red-400 hover:text-red-300"
+                      >
+                        Remove file
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <FileText className="w-12 h-12 mx-auto text-gray-600" />
+                      <p className="text-sm text-gray-400">
+                        Drag & drop your resume here or
+                      </p>
+                      <label className="inline-block">
+                        <input
+                          type="file"
+                          accept=".pdf"
+                          onChange={handleFileSelect}
+                          className="hidden"
+                        />
+                        <span className="text-blue-400 hover:text-blue-300 cursor-pointer text-sm font-medium">
+                          browse files
+                        </span>
+                      </label>
+                      <p className="text-xs text-gray-600">PDF only, max 10MB</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Filename (auto-filled from file) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Filename</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.filename}
+                  onChange={(e) => setFormData({ ...formData, filename: e.target.value })}
+                  className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="My_Resume.pdf"
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              {/* URL Mode */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Filename *</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.filename}
+                  onChange={(e) => setFormData({ ...formData, filename: e.target.value })}
+                  className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="My_Resume.pdf"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">File URL *</label>
+                <input
+                  type="url"
+                  required
+                  value={formData.fileUrl}
+                  onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })}
+                  className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="https://example.com/resume.pdf"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Upload your resume to a file hosting service (Google Drive, Dropbox, etc.) and paste the public URL here.
+                </p>
+              </div>
+            </>
+          )}
+
+          {/* Active Toggle */}
           <div className="flex items-center gap-2">
-            <input type="checkbox" id="isActive" checked={formData.isActive} onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })} className="rounded border-gray-800 bg-black text-blue-500 focus:ring-2 focus:ring-blue-500" />
-            <label htmlFor="isActive" className="text-sm text-gray-300">Set as active resume</label>
+            <input
+              type="checkbox"
+              id="isActive"
+              checked={formData.isActive}
+              onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+              className="rounded border-gray-800 bg-black text-blue-500 focus:ring-2 focus:ring-blue-500"
+            />
+            <label htmlFor="isActive" className="text-sm text-gray-300">
+              Set as active resume (visible on landing page)
+            </label>
           </div>
+
+          {/* Action Buttons */}
           <div className="flex gap-3 pt-4 border-t border-gray-800">
-            <button type="button" onClick={onClose} disabled={saving} className="flex-1 px-4 py-2 border border-gray-800 text-gray-300 rounded-lg hover:bg-gray-900 disabled:opacity-50 transition-colors">Cancel</button>
-            <button type="submit" disabled={saving} className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 transition-all shadow-lg hover:shadow-blue-500/50">{saving ? 'Saving...' : 'Save'}</button>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={saving}
+              className="flex-1 px-4 py-2 border border-gray-800 text-gray-300 rounded-lg hover:bg-gray-900 disabled:opacity-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving || (uploadMode === 'file' && !selectedFile && !resume)}
+              className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 transition-all shadow-lg hover:shadow-blue-500/50"
+            >
+              {saving ? 'Saving...' : 'Save'}
+            </button>
           </div>
         </form>
       </div>

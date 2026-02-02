@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api/client';
-import type { Project, Skill, WorkExperience, Education, Hobby, Testimonial, ContactInfo } from '@/lib/api/client';
-import { Mail, Phone, MapPin, Link as LinkIcon, Github, ExternalLink, Star } from 'lucide-react';
+import type { Project, Skill, WorkExperience, Education, Hobby, Testimonial, ContactInfo, Resume } from '@/lib/api/client';
+import { Mail, Phone, MapPin, Link as LinkIcon, Github, ExternalLink, Star, Download, FileText } from 'lucide-react';
 
 export default function Home() {
   const [lang, setLang] = useState<'en' | 'fr'>('en');
@@ -17,6 +17,7 @@ export default function Home() {
     hobbies: [] as Hobby[],
     testimonials: [] as Testimonial[],
     contactInfo: [] as ContactInfo[],
+    resume: null as Resume | null,
   });
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export default function Home() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [projects, skills, experiences, education, hobbies, testimonials, contactInfo] = await Promise.all([
+      const [projects, skills, experiences, education, hobbies, testimonials, contactInfo, resume] = await Promise.all([
         apiClient.getPublicProjects().catch((err) => {
           console.error('Failed to load projects:', err);
           return { projects: [] };
@@ -55,7 +56,14 @@ export default function Home() {
           console.error('Failed to load contact info:', err);
           return { contactInfo: [] };
         }),
+        apiClient.getPublicResume().catch((err) => {
+          console.error('Failed to load resume:', err);
+          return { resume: null };
+        }),
       ]);
+
+      console.log('Resume API Response:', resume);
+      console.log('Resume Data:', resume.resume);
 
       console.log('Loaded data:', {
         projects: projects.projects.length,
@@ -65,6 +73,7 @@ export default function Home() {
         hobbies: hobbies.hobbies.length,
         testimonials: testimonials.testimonials.length,
         contactInfo: contactInfo.contactInfo.length,
+        resume: resume.resume ? 'Available' : 'None',
       });
 
       setData({
@@ -75,6 +84,7 @@ export default function Home() {
         hobbies: hobbies.hobbies || [],
         testimonials: testimonials.testimonials || [],
         contactInfo: contactInfo.contactInfo || [],
+        resume: resume.resume || null,
       });
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -114,6 +124,9 @@ export default function Home() {
               </a>
               <a href="#skills" className="text-gray-300 hover:text-blue-400 transition-colors">
                 {t('Skills', 'Compétences')}
+              </a>
+              <a href="#resume" className="text-gray-300 hover:text-blue-400 transition-colors">
+                {t('Resume', 'CV')}
               </a>
               <a href="#contact" className="text-gray-300 hover:text-blue-400 transition-colors">
                 {t('Contact', 'Contact')}
@@ -220,6 +233,87 @@ export default function Home() {
             <p className="text-center text-gray-400 text-lg">
               {t('No education history added yet', 'Aucune formation ajoutée')}
             </p>
+          )}
+        </div>
+      </section>
+
+      {/* Resume Download Section - Always Visible */}
+      <section id="resume" className="py-20 px-4 sm:px-6 lg:px-8 bg-black">
+        <div className="max-w-4xl mx-auto">
+          {data.resume ? (
+            // Resume Available - Download Card
+            <div className="bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 border-2 border-blue-500/30 rounded-2xl p-12 text-center relative overflow-hidden group hover:border-purple-500/50 transition-all duration-500">
+              {/* Animated background effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-purple-500/5 to-pink-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              
+              <div className="relative z-10">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full mb-6 shadow-lg shadow-blue-500/50 group-hover:scale-110 transition-transform duration-300">
+                  <FileText className="w-10 h-10 text-white" />
+                </div>
+                
+                <h3 className="text-3xl font-bold text-white mb-3 gradient-text">
+                  {t('Download My Resume', 'Télécharger mon CV')}
+                </h3>
+                
+                <p className="text-gray-300 mb-2 text-lg font-medium">
+                  {data.resume.filename}
+                </p>
+                
+                <p className="text-gray-400 mb-8 max-w-2xl mx-auto">
+                  {t(
+                    'Get a comprehensive overview of my experience, skills, and qualifications',
+                    'Obtenez un aperçu complet de mon expérience, mes compétences et qualifications'
+                  )}
+                </p>
+                
+                <a
+                  href={data.resume.fileUrl}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-lg font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-purple-500/40 transform hover:scale-105 group"
+                >
+                  <Download className="w-6 h-6 group-hover:animate-bounce" />
+                  {t('Download Resume', 'Télécharger le CV')}
+                </a>
+                
+                <p className="text-xs text-gray-500 mt-4">
+                  {t('PDF Format • Last Updated', 'Format PDF • Dernière mise à jour')} {new Date(data.resume.createdAt).toLocaleDateString(lang === 'en' ? 'en-US' : 'fr-FR')}
+                </p>
+              </div>
+            </div>
+          ) : (
+            // No Resume Available - Placeholder Card
+            <div className="bg-gradient-to-br from-gray-900/50 via-gray-800/50 to-gray-900/50 border-2 border-gray-700/50 rounded-2xl p-12 text-center relative overflow-hidden">
+              <div className="relative z-10">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-800 rounded-full mb-6 opacity-50">
+                  <FileText className="w-10 h-10 text-gray-600" />
+                </div>
+                
+                <h3 className="text-3xl font-bold text-gray-400 mb-3">
+                  {t('Resume Coming Soon', 'CV Bientôt Disponible')}
+                </h3>
+                
+                <p className="text-gray-500 mb-8 max-w-2xl mx-auto">
+                  {t(
+                    'My professional resume will be available for download here soon. Stay tuned!',
+                    'Mon CV professionnel sera bientôt disponible en téléchargement ici. Restez à l\'écoute!'
+                  )}
+                </p>
+                
+                <button
+                  disabled
+                  className="inline-flex items-center gap-3 px-8 py-4 bg-gray-800 text-gray-500 text-lg font-semibold rounded-lg cursor-not-allowed opacity-50"
+                >
+                  <FileText className="w-6 h-6" />
+                  {t('No Resume Available', 'CV Non Disponible')}
+                </button>
+                
+                <p className="text-xs text-gray-600 mt-4">
+                  {t('Check back later for updates', 'Revenez plus tard pour les mises à jour')}
+                </p>
+              </div>
+            </div>
           )}
         </div>
       </section>
