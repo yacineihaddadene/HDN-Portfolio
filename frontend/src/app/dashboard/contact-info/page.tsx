@@ -5,6 +5,7 @@ import { authClient } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import { apiClient, ContactInfo } from '@/lib/api/client';
+import { Plus, Edit2, Trash2, Mail, Phone, MapPin, Share2 } from 'lucide-react';
 
 export default function ContactInfoPage() {
   const [user, setUser] = useState<any>(null);
@@ -47,7 +48,7 @@ export default function ContactInfoPage() {
     }
   };
 
-  if (loading) return <div className="flex min-h-screen items-center justify-center"><div>Loading...</div></div>;
+  if (loading) return <div className="flex min-h-screen items-center justify-center bg-black"><div className="text-white">Loading...</div></div>;
 
   const groupedInfo = contactInfo.reduce((acc, info) => {
     if (!acc[info.type]) acc[info.type] = [];
@@ -55,31 +56,53 @@ export default function ContactInfoPage() {
     return acc;
   }, {} as Record<string, ContactInfo[]>);
 
+  const getIcon = (type: string) => {
+    switch(type) {
+      case 'email': return <Mail className="w-5 h-5" />;
+      case 'phone': return <Phone className="w-5 h-5" />;
+      case 'address': return <MapPin className="w-5 h-5" />;
+      case 'social_links': return <Share2 className="w-5 h-5" />;
+      default: return null;
+    }
+  };
+
   return (
     <DashboardLayout user={user}>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-bold">Contact Information</h2>
-            <p className="text-gray-600 mt-1">Manage your contact details</p>
+            <h2 className="text-2xl font-bold text-white">Contact Information</h2>
+            <p className="text-gray-400 mt-1">Manage your contact details</p>
           </div>
-          <button onClick={() => { setEditingInfo(null); setShowModal(true); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">➕ Add Contact Info</button>
+          <button onClick={() => { setEditingInfo(null); setShowModal(true); }} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-blue-500/50">
+            <Plus className="w-4 h-4" />
+            Add Contact Info
+          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {Object.entries(groupedInfo).map(([type, items]) => (
-            <div key={type} className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold mb-4 capitalize">{type.replace('_', ' ')}</h3>
+            <div key={type} className="bg-gray-950 border border-gray-800 rounded-lg shadow-lg p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="text-blue-400">{getIcon(type)}</div>
+                <h3 className="text-lg font-semibold text-white capitalize">{type.replace('_', ' ')}</h3>
+              </div>
               <div className="space-y-3">
                 {items.map((info) => (
-                  <div key={info.id} className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                  <div key={info.id} className="flex justify-between items-center p-3 bg-black border border-gray-800 rounded">
                     <div className="flex-1">
-                      <p className="text-sm text-gray-900">{info.value}</p>
+                      <p className="text-sm text-gray-300">{info.value}</p>
                       <p className="text-xs text-gray-500">Order: {info.order}</p>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => { setEditingInfo(info); setShowModal(true); }} className="text-blue-600 hover:text-blue-900 text-sm">Edit</button>
-                      <button onClick={() => handleDelete(info.id)} className="text-red-600 hover:text-red-900 text-sm">Delete</button>
+                      <button onClick={() => { setEditingInfo(info); setShowModal(true); }} className="flex items-center gap-1 text-blue-400 hover:text-blue-300 text-sm transition-colors">
+                        <Edit2 className="w-3 h-3" />
+                        Edit
+                      </button>
+                      <button onClick={() => handleDelete(info.id)} className="flex items-center gap-1 text-red-400 hover:text-red-300 text-sm transition-colors">
+                        <Trash2 className="w-3 h-3" />
+                        Delete
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -122,13 +145,13 @@ function ContactInfoModal({ info, onClose, onSave }: any) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 className="text-xl font-bold mb-4">{info ? 'Edit Contact Info' : 'Create Contact Info'}</h3>
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-gray-950 border border-gray-800 rounded-lg p-6 w-full max-w-md shadow-2xl">
+        <h3 className="text-xl font-bold mb-4 text-white">{info ? 'Edit Contact Info' : 'Create Contact Info'}</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Type *</label>
-            <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="w-full px-3 py-2 border rounded-lg">
+            <label className="block text-sm font-medium text-gray-300 mb-1">Type *</label>
+            <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
               <option value="email">Email</option>
               <option value="phone">Phone</option>
               <option value="address">Address</option>
@@ -136,16 +159,16 @@ function ContactInfoModal({ info, onClose, onSave }: any) {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Value *</label>
-            <input type="text" required value={formData.value} onChange={(e) => setFormData({ ...formData, value: e.target.value })} className="w-full px-3 py-2 border rounded-lg" placeholder={formData.type === 'email' ? 'contact@example.com' : formData.type === 'phone' ? '+1234567890' : formData.type === 'address' ? '123 Main St' : 'https://...'} />
+            <label className="block text-sm font-medium text-gray-300 mb-1">Value *</label>
+            <input type="text" required value={formData.value} onChange={(e) => setFormData({ ...formData, value: e.target.value })} className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder={formData.type === 'email' ? 'contact@example.com' : formData.type === 'phone' ? '+1234567890' : formData.type === 'address' ? '123 Main St' : 'https://...'} />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Order</label>
-            <input type="number" value={formData.order} onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) })} className="w-full px-3 py-2 border rounded-lg" />
+            <label className="block text-sm font-medium text-gray-300 mb-1">Order</label>
+            <input type="number" value={formData.order} onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) })} className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
           </div>
-          <div className="flex gap-3 pt-4 border-t">
-            <button type="button" onClick={onClose} disabled={saving} className="flex-1 px-4 py-2 border rounded-lg">Cancel</button>
-            <button type="submit" disabled={saving} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg">{saving ? 'Saving...' : 'Save'}</button>
+          <div className="flex gap-3 pt-4 border-t border-gray-800">
+            <button type="button" onClick={onClose} disabled={saving} className="flex-1 px-4 py-2 border border-gray-800 text-gray-300 rounded-lg hover:bg-gray-900 disabled:opacity-50 transition-colors">Cancel</button>
+            <button type="submit" disabled={saving} className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 transition-all shadow-lg hover:shadow-blue-500/50">{saving ? 'Saving...' : 'Save'}</button>
           </div>
         </form>
       </div>

@@ -60,25 +60,25 @@ export default function ProjectsPage() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-bold">Projects Management</h2>
-            <p className="text-gray-600 mt-1">Manage your portfolio projects</p>
+            <h2 className="text-2xl font-bold text-white">Projects Management</h2>
+            <p className="text-gray-400 mt-1">Manage your portfolio projects</p>
           </div>
           <button
             onClick={() => {
               setEditingProject(null);
               setShowModal(true);
             }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all shadow-lg shadow-blue-500/20"
           >
-            ➕ Add Project
+            Add Project
           </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project) => (
-            <div key={project.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div key={project.id} className="bg-gray-950 border border-gray-800 rounded-lg overflow-hidden hover:border-blue-500 transition-all">
               {project.imageUrl && (
-                <div className="h-48 bg-gray-200">
+                <div className="h-48 bg-gray-900">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={project.imageUrl}
@@ -88,30 +88,30 @@ export default function ProjectsPage() {
                 </div>
               )}
               <div className="p-4">
-                <h3 className="text-lg font-semibold mb-2">{project.title.en}</h3>
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                <h3 className="text-lg font-semibold mb-2 text-white">{project.title.en}</h3>
+                <p className="text-sm text-gray-400 mb-3 line-clamp-2">
                   {project.description.en}
                 </p>
                 <div className="flex flex-wrap gap-1 mb-3">
                   {project.technologies?.slice(0, 3).map((tech, i) => (
                     <span
                       key={i}
-                      className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded"
+                      className="px-2 py-1 text-xs bg-blue-500/20 text-blue-400 rounded border border-blue-500/30"
                     >
                       {tech}
                     </span>
                   ))}
                   {project.technologies && project.technologies.length > 3 && (
-                    <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded">
+                    <span className="px-2 py-1 text-xs bg-gray-800 text-gray-400 rounded border border-gray-700">
                       +{project.technologies.length - 3}
                     </span>
                   )}
                 </div>
                 <div className="flex items-center justify-between">
                   <span className={`text-xs px-2 py-1 rounded ${
-                    project.status === 'published' ? 'bg-green-100 text-green-800' :
-                    project.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-gray-100 text-gray-800'
+                    project.status === 'published' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                    project.status === 'draft' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                    'bg-gray-800 text-gray-400 border border-gray-700'
                   }`}>
                     {project.status}
                   </span>
@@ -121,13 +121,13 @@ export default function ProjectsPage() {
                         setEditingProject(project);
                         setShowModal(true);
                       }}
-                      className="text-sm text-blue-600 hover:text-blue-900"
+                      className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(project.id)}
-                      className="text-sm text-red-600 hover:text-red-900"
+                      className="text-sm text-red-400 hover:text-red-300 transition-colors"
                     >
                       Delete
                     </button>
@@ -222,16 +222,16 @@ function ProjectModal({ project, onClose, onSave }: any) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-lg p-6 w-full max-w-4xl my-8">
-        <h3 className="text-xl font-bold mb-4">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-gray-950 border border-gray-800 rounded-lg p-6 w-full max-w-4xl my-8 shadow-2xl">
+        <h3 className="text-xl font-bold mb-4 text-white">
           {project ? 'Edit Project' : 'Create Project'}
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Title (English) *
               </label>
               <input
@@ -239,11 +239,11 @@ function ProjectModal({ project, onClose, onSave }: any) {
                 required
                 value={formData.titleEn}
                 onChange={(e) => setFormData({ ...formData, titleEn: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Title (French) *
               </label>
               <input
@@ -251,14 +251,14 @@ function ProjectModal({ project, onClose, onSave }: any) {
                 required
                 value={formData.titleFr}
                 onChange={(e) => setFormData({ ...formData, titleFr: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Description (English) *
               </label>
               <textarea
@@ -266,11 +266,11 @@ function ProjectModal({ project, onClose, onSave }: any) {
                 value={formData.descriptionEn}
                 onChange={(e) => setFormData({ ...formData, descriptionEn: e.target.value })}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Description (French) *
               </label>
               <textarea
@@ -278,48 +278,48 @@ function ProjectModal({ project, onClose, onSave }: any) {
                 value={formData.descriptionFr}
                 onChange={(e) => setFormData({ ...formData, descriptionFr: e.target.value })}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Full Description (English)
               </label>
               <textarea
                 value={formData.fullDescriptionEn}
                 onChange={(e) => setFormData({ ...formData, fullDescriptionEn: e.target.value })}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Full Description (French)
               </label>
               <textarea
                 value={formData.fullDescriptionFr}
                 onChange={(e) => setFormData({ ...formData, fullDescriptionFr: e.target.value })}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Client</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Client</label>
               <input
                 type="text"
                 value={formData.client}
                 onChange={(e) => setFormData({ ...formData, client: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Technologies (comma-separated)
               </label>
               <input
@@ -327,79 +327,79 @@ function ProjectModal({ project, onClose, onSave }: any) {
                 value={formData.technologies}
                 onChange={(e) => setFormData({ ...formData, technologies: e.target.value })}
                 placeholder="React, Node.js, MongoDB"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white placeholder-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Project URL</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Project URL</label>
               <input
                 type="url"
                 value={formData.projectUrl}
                 onChange={(e) => setFormData({ ...formData, projectUrl: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">GitHub URL</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">GitHub URL</label>
               <input
                 type="url"
                 value={formData.githubUrl}
                 onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Image URL</label>
               <input
                 type="url"
                 value={formData.imageUrl}
                 onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Color</label>
               <input
                 type="text"
                 value={formData.color}
                 onChange={(e) => setFormData({ ...formData, color: e.target.value })}
                 placeholder="#3B82F6"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white placeholder-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Start Date</label>
               <input
                 type="date"
                 value={formData.startDate}
                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">End Date</label>
               <input
                 type="date"
                 value={formData.endDate}
                 onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status *</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Status *</label>
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="draft">Draft</option>
                 <option value="published">Published</option>
@@ -414,26 +414,26 @@ function ProjectModal({ project, onClose, onSave }: any) {
               id="featured"
               checked={formData.featured}
               onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
-              className="rounded border-gray-300"
+              className="rounded border-gray-800 bg-black text-blue-500 focus:ring-2 focus:ring-blue-500"
             />
-            <label htmlFor="featured" className="text-sm text-gray-700">
+            <label htmlFor="featured" className="text-sm text-gray-300">
               Featured Project
             </label>
           </div>
 
-          <div className="flex gap-3 pt-4 border-t">
+          <div className="flex gap-3 pt-4 border-t border-gray-800">
             <button
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              className="flex-1 px-4 py-2 border border-gray-800 text-gray-300 rounded-lg hover:bg-gray-900 disabled:opacity-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 transition-all shadow-lg hover:shadow-blue-500/50"
             >
               {saving ? 'Saving...' : 'Save Project'}
             </button>

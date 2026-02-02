@@ -5,6 +5,7 @@ import { authClient } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import { apiClient, WorkExperience } from '@/lib/api/client';
+import { Plus, Edit2, Trash2, Calendar, MapPin } from 'lucide-react';
 
 export default function ExperiencePage() {
   const [user, setUser] = useState<any>(null);
@@ -49,8 +50,8 @@ export default function ExperiencePage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg">Loading...</div>
+      <div className="flex min-h-screen items-center justify-center bg-black">
+        <div className="text-lg text-white">Loading...</div>
       </div>
     );
   }
@@ -60,33 +61,40 @@ export default function ExperiencePage() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-bold">Work Experience</h2>
-            <p className="text-gray-600 mt-1">Manage your professional experience</p>
+            <h2 className="text-2xl font-bold text-white">Work Experience</h2>
+            <p className="text-gray-400 mt-1">Manage your professional experience</p>
           </div>
           <button
             onClick={() => {
               setEditingExperience(null);
               setShowModal(true);
             }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-blue-500/50"
           >
-            ➕ Add Experience
+            <Plus className="w-4 h-4" />
+            Add Experience
           </button>
         </div>
 
         <div className="space-y-4">
           {experiences.map((exp) => (
-            <div key={exp.id} className="bg-white rounded-lg shadow p-6">
+            <div key={exp.id} className="bg-gray-950 border border-gray-800 rounded-lg shadow-lg p-6">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">{exp.position.en}</h3>
-                  <p className="text-md text-gray-700 mt-1">{exp.company.en}</p>
-                  <p className="text-sm text-gray-500">{exp.location.en}</p>
-                  <p className="text-sm text-gray-600 mt-2">{exp.description.en}</p>
-                  <div className="mt-3 flex items-center gap-3 text-sm text-gray-500">
-                    <span>📅 {exp.startDate} - {exp.current ? 'Present' : exp.endDate || 'N/A'}</span>
+                  <h3 className="text-lg font-semibold text-white">{exp.position.en}</h3>
+                  <p className="text-md text-blue-400 mt-1">{exp.company.en}</p>
+                  <div className="flex items-center gap-2 mt-1 text-gray-400">
+                    <MapPin className="w-4 h-4" />
+                    <p className="text-sm">{exp.location.en}</p>
+                  </div>
+                  <p className="text-sm text-gray-300 mt-2">{exp.description.en}</p>
+                  <div className="mt-3 flex items-center gap-3 text-sm text-gray-400">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      <span>{exp.startDate} - {exp.current ? 'Present' : exp.endDate || 'N/A'}</span>
+                    </div>
                     {exp.current && (
-                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
+                      <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs border border-green-500/30">
                         Current
                       </span>
                     )}
@@ -98,14 +106,16 @@ export default function ExperiencePage() {
                       setEditingExperience(exp);
                       setShowModal(true);
                     }}
-                    className="text-blue-600 hover:text-blue-900"
+                    className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors"
                   >
+                    <Edit2 className="w-4 h-4" />
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(exp.id)}
-                    className="text-red-600 hover:text-red-900"
+                    className="flex items-center gap-1 text-red-400 hover:text-red-300 transition-colors"
                   >
+                    <Trash2 className="w-4 h-4" />
                     Delete
                   </button>
                 </div>
@@ -181,16 +191,16 @@ function ExperienceModal({ experience, onClose, onSave }: any) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl my-8">
-        <h3 className="text-xl font-bold mb-4">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-gray-950 border border-gray-800 rounded-lg p-6 w-full max-w-2xl my-8 shadow-2xl">
+        <h3 className="text-xl font-bold mb-4 text-white">
           {experience ? 'Edit Experience' : 'Create Experience'}
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Position (English) *
               </label>
               <input
@@ -198,11 +208,11 @@ function ExperienceModal({ experience, onClose, onSave }: any) {
                 required
                 value={formData.positionEn}
                 onChange={(e) => setFormData({ ...formData, positionEn: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Position (French) *
               </label>
               <input
@@ -210,14 +220,14 @@ function ExperienceModal({ experience, onClose, onSave }: any) {
                 required
                 value={formData.positionFr}
                 onChange={(e) => setFormData({ ...formData, positionFr: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Company (English) *
               </label>
               <input
@@ -225,11 +235,11 @@ function ExperienceModal({ experience, onClose, onSave }: any) {
                 required
                 value={formData.companyEn}
                 onChange={(e) => setFormData({ ...formData, companyEn: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Company (French) *
               </label>
               <input
@@ -237,14 +247,14 @@ function ExperienceModal({ experience, onClose, onSave }: any) {
                 required
                 value={formData.companyFr}
                 onChange={(e) => setFormData({ ...formData, companyFr: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Location (English) *
               </label>
               <input
@@ -252,11 +262,11 @@ function ExperienceModal({ experience, onClose, onSave }: any) {
                 required
                 value={formData.locationEn}
                 onChange={(e) => setFormData({ ...formData, locationEn: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Location (French) *
               </label>
               <input
@@ -264,14 +274,14 @@ function ExperienceModal({ experience, onClose, onSave }: any) {
                 required
                 value={formData.locationFr}
                 onChange={(e) => setFormData({ ...formData, locationFr: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Description (English) *
               </label>
               <textarea
@@ -279,11 +289,11 @@ function ExperienceModal({ experience, onClose, onSave }: any) {
                 value={formData.descriptionEn}
                 onChange={(e) => setFormData({ ...formData, descriptionEn: e.target.value })}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Description (French) *
               </label>
               <textarea
@@ -291,14 +301,14 @@ function ExperienceModal({ experience, onClose, onSave }: any) {
                 value={formData.descriptionFr}
                 onChange={(e) => setFormData({ ...formData, descriptionFr: e.target.value })}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Start Date *
               </label>
               <input
@@ -306,11 +316,11 @@ function ExperienceModal({ experience, onClose, onSave }: any) {
                 required
                 value={formData.startDate}
                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 End Date
               </label>
               <input
@@ -318,18 +328,18 @@ function ExperienceModal({ experience, onClose, onSave }: any) {
                 disabled={formData.current}
                 value={formData.endDate}
                 onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-900 disabled:opacity-50"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Order
               </label>
               <input
                 type="number"
                 value={formData.order}
                 onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -340,26 +350,26 @@ function ExperienceModal({ experience, onClose, onSave }: any) {
               id="current"
               checked={formData.current}
               onChange={(e) => setFormData({ ...formData, current: e.target.checked, endDate: e.target.checked ? '' : formData.endDate })}
-              className="rounded border-gray-300"
+              className="rounded border-gray-800 bg-black text-blue-500 focus:ring-2 focus:ring-blue-500"
             />
-            <label htmlFor="current" className="text-sm text-gray-700">
+            <label htmlFor="current" className="text-sm text-gray-300">
               I currently work here
             </label>
           </div>
 
-          <div className="flex gap-3 pt-4 border-t">
+          <div className="flex gap-3 pt-4 border-t border-gray-800">
             <button
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              className="flex-1 px-4 py-2 border border-gray-800 text-gray-300 rounded-lg hover:bg-gray-900 disabled:opacity-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 transition-all shadow-lg hover:shadow-blue-500/50"
             >
               {saving ? 'Saving...' : 'Save Experience'}
             </button>

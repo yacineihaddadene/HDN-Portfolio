@@ -5,6 +5,18 @@ import { authClient } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import { apiClient } from '@/lib/api/client';
+import {
+  Briefcase,
+  Zap,
+  Building2,
+  GraduationCap,
+  Mail,
+  MessageSquare,
+  Plus,
+  Star,
+  Inbox,
+  FileText
+} from 'lucide-react';
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
@@ -80,8 +92,8 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg">Loading...</div>
+      <div className="flex min-h-screen items-center justify-center bg-black">
+        <div className="text-lg text-gray-400">Loading...</div>
       </div>
     );
   }
@@ -90,9 +102,9 @@ export default function DashboardPage() {
     <DashboardLayout user={user}>
       <div className="space-y-6">
         {/* Welcome Section */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-2xl font-bold mb-2">Welcome back, {user?.email}! 👋</h2>
-          <p className="text-gray-600">
+        <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-lg p-6 backdrop-blur-sm">
+          <h2 className="text-2xl font-bold mb-2 text-white">Welcome back, {user?.email}! 👋</h2>
+          <p className="text-gray-400">
             Manage your portfolio content from this dashboard.
           </p>
         </div>
@@ -102,69 +114,69 @@ export default function DashboardPage() {
           <StatCard
             title="Projects"
             count={stats.projects}
-            icon="💼"
+            icon={Briefcase}
             href="/dashboard/projects"
             color="blue"
           />
           <StatCard
             title="Skills"
             count={stats.skills}
-            icon="⚡"
+            icon={Zap}
             href="/dashboard/skills"
             color="green"
           />
           <StatCard
             title="Work Experience"
             count={stats.experiences}
-            icon="🏢"
+            icon={Building2}
             href="/dashboard/experience"
             color="purple"
           />
           <StatCard
             title="Education"
             count={stats.education}
-            icon="🎓"
+            icon={GraduationCap}
             href="/dashboard/education"
             color="yellow"
           />
           <StatCard
             title="Messages"
             count={stats.messages}
-            icon="📧"
+            icon={Mail}
             href="/dashboard/messages"
             color="red"
           />
           <StatCard
             title="Testimonials"
             count={stats.testimonials}
-            icon="💬"
+            icon={MessageSquare}
             href="/dashboard/testimonials"
             color="pink"
           />
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
+        <div className="bg-black border border-gray-900 rounded-lg p-6">
+          <h3 className="text-lg font-semibold mb-4 text-white">Quick Actions</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <QuickActionButton
               label="Add Project"
-              icon="➕"
+              icon={Plus}
               href="/dashboard/projects"
             />
             <QuickActionButton
               label="Add Skill"
-              icon="⭐"
+              icon={Star}
               href="/dashboard/skills"
             />
             <QuickActionButton
               label="View Messages"
-              icon="📬"
+              icon={Inbox}
               href="/dashboard/messages"
             />
             <QuickActionButton
               label="Manage Resume"
-              icon="📄"
+              icon={FileText}
               href="/dashboard/resume"
             />
           </div>
@@ -174,23 +186,23 @@ export default function DashboardPage() {
   );
 }
 
-function StatCard({ title, count, icon, href, color }: any) {
+function StatCard({ title, count, icon: Icon, href, color }: any) {
   const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600 border-blue-200',
-    green: 'bg-green-50 text-green-600 border-green-200',
-    purple: 'bg-purple-50 text-purple-600 border-purple-200',
-    yellow: 'bg-yellow-50 text-yellow-600 border-yellow-200',
-    red: 'bg-red-50 text-red-600 border-red-200',
-    pink: 'bg-pink-50 text-pink-600 border-pink-200',
+    blue: 'bg-blue-500/10 text-blue-400 border-blue-500/20 hover:border-blue-500 hover:shadow-blue-500/20',
+    green: 'bg-green-500/10 text-green-400 border-green-500/20 hover:border-green-500 hover:shadow-green-500/20',
+    purple: 'bg-purple-500/10 text-purple-400 border-purple-500/20 hover:border-purple-500 hover:shadow-purple-500/20',
+    yellow: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20 hover:border-yellow-500 hover:shadow-yellow-500/20',
+    red: 'bg-red-500/10 text-red-400 border-red-500/20 hover:border-red-500 hover:shadow-red-500/20',
+    pink: 'bg-pink-500/10 text-pink-400 border-pink-500/20 hover:border-pink-500 hover:shadow-pink-500/20',
   };
 
   return (
     <a
       href={href}
-      className={`block p-6 rounded-lg border-2 transition-all hover:shadow-lg ${colorClasses[color as keyof typeof colorClasses]}`}
+      className={`block p-6 rounded-lg border-2 transition-all hover:shadow-lg transform hover:scale-105 ${colorClasses[color as keyof typeof colorClasses]}`}
     >
       <div className="flex items-center justify-between mb-2">
-        <span className="text-3xl">{icon}</span>
+        <Icon size={32} />
         <span className="text-3xl font-bold">{count}</span>
       </div>
       <h3 className="text-lg font-semibold">{title}</h3>
@@ -199,14 +211,14 @@ function StatCard({ title, count, icon, href, color }: any) {
   );
 }
 
-function QuickActionButton({ label, icon, href }: any) {
+function QuickActionButton({ label, icon: Icon, href }: any) {
   return (
     <a
       href={href}
-      className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all"
+      className="flex items-center gap-3 p-4 border-2 border-gray-900 bg-black rounded-lg hover:border-blue-500 hover:bg-gray-950 transition-all transform hover:scale-105"
     >
-      <span className="text-2xl">{icon}</span>
-      <span className="font-medium text-gray-700">{label}</span>
+      <Icon size={20} className="text-gray-400" />
+      <span className="font-medium text-gray-300">{label}</span>
     </a>
   );
 }

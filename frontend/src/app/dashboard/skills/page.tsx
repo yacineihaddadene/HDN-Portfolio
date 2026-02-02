@@ -71,40 +71,40 @@ export default function SkillsPage() {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-bold">Skills Management</h2>
-            <p className="text-gray-600 mt-1">Manage your technical and soft skills</p>
+            <h2 className="text-2xl font-bold text-white">Skills Management</h2>
+            <p className="text-gray-400 mt-1">Manage your technical and soft skills</p>
           </div>
           <button
             onClick={handleCreate}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all shadow-lg shadow-blue-500/20"
           >
-            ➕ Add Skill
+            Add Skill
           </button>
         </div>
 
         {/* Skills List */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <div className="bg-black border border-gray-900 rounded-lg overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-900">
+            <thead className="bg-gray-950">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Name (EN)
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Name (FR)
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Category
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Order
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-black divide-y divide-gray-900">
               {skills.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
@@ -113,15 +113,15 @@ export default function SkillsPage() {
                 </tr>
               ) : (
                 skills.map((skill) => (
-                  <tr key={skill.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <tr key={skill.id} className="hover:bg-gray-950 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       {skill.name.en}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       {skill.name.fr}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <span className="px-2 py-1 text-xs font-medium bg-blue-500/20 text-blue-400 rounded border border-blue-500/30">
                         {skill.category}
                       </span>
                     </td>
@@ -131,13 +131,13 @@ export default function SkillsPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                       <button
                         onClick={() => handleEdit(skill)}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-blue-400 hover:text-blue-300 transition-colors"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDelete(skill.id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-400 hover:text-red-300 transition-colors"
                       >
                         Delete
                       </button>
@@ -199,15 +199,15 @@ function SkillModal({ skill, onClose, onSave }: any) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 className="text-xl font-bold mb-4">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-gray-950 border border-gray-800 rounded-lg p-6 w-full max-w-md shadow-2xl">
+        <h3 className="text-xl font-bold mb-4 text-white">
           {skill ? 'Edit Skill' : 'Create Skill'}
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Name (English) *
             </label>
             <input
@@ -215,12 +215,12 @@ function SkillModal({ skill, onClose, onSave }: any) {
               required
               value={formData.nameEn}
               onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Name (French) *
             </label>
             <input
@@ -228,12 +228,12 @@ function SkillModal({ skill, onClose, onSave }: any) {
               required
               value={formData.nameFr}
               onChange={(e) => setFormData({ ...formData, nameFr: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Category *
             </label>
             <input
@@ -241,20 +241,20 @@ function SkillModal({ skill, onClose, onSave }: any) {
               required
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-600"
               placeholder="e.g., Programming, Design, Tools"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Order
             </label>
             <input
               type="number"
               value={formData.order}
               onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
@@ -263,14 +263,14 @@ function SkillModal({ skill, onClose, onSave }: any) {
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              className="flex-1 px-4 py-2 border border-gray-800 text-gray-400 rounded-lg hover:bg-gray-900 hover:text-white transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all disabled:opacity-50 shadow-lg shadow-blue-500/20"
             >
               {saving ? 'Saving...' : 'Save'}
             </button>

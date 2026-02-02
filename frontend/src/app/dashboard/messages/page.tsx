@@ -5,6 +5,7 @@ import { authClient } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import { apiClient, ContactMessage } from '@/lib/api/client';
+import { Mail, Trash2, Eye, EyeOff } from 'lucide-react';
 
 export default function MessagesPage() {
   const [user, setUser] = useState<any>(null);
@@ -71,8 +72,8 @@ export default function MessagesPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg">Loading...</div>
+      <div className="flex min-h-screen items-center justify-center bg-black">
+        <div className="text-lg text-white">Loading...</div>
       </div>
     );
   }
@@ -82,27 +83,27 @@ export default function MessagesPage() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-bold">Contact Messages</h2>
-            <p className="text-gray-600 mt-1">
+            <h2 className="text-2xl font-bold text-white">Contact Messages</h2>
+            <p className="text-gray-400 mt-1">
               {unreadCount > 0 ? `${unreadCount} unread message${unreadCount > 1 ? 's' : ''}` : 'All messages read'}
             </p>
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => handleFilterChange('all')}
-              className={`px-4 py-2 rounded-lg ${filter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+              className={`px-4 py-2 rounded-lg transition-colors ${filter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
             >
               All
             </button>
             <button
               onClick={() => handleFilterChange('unread')}
-              className={`px-4 py-2 rounded-lg ${filter === 'unread' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+              className={`px-4 py-2 rounded-lg transition-colors ${filter === 'unread' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
             >
               Unread {unreadCount > 0 && `(${unreadCount})`}
             </button>
             <button
               onClick={() => handleFilterChange('read')}
-              className={`px-4 py-2 rounded-lg ${filter === 'read' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+              className={`px-4 py-2 rounded-lg transition-colors ${filter === 'read' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
             >
               Read
             </button>
@@ -111,8 +112,8 @@ export default function MessagesPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Messages List */}
-          <div className="lg:col-span-1 bg-white rounded-lg shadow overflow-hidden">
-            <div className="divide-y divide-gray-200 max-h-[calc(100vh-250px)] overflow-y-auto">
+          <div className="lg:col-span-1 bg-gray-950 border border-gray-800 rounded-lg shadow-lg overflow-hidden">
+            <div className="divide-y divide-gray-800 max-h-[calc(100vh-250px)] overflow-y-auto">
               {messages.length === 0 ? (
                 <div className="p-6 text-center text-gray-500">
                   No messages found
@@ -127,24 +128,24 @@ export default function MessagesPage() {
                         handleStatusChange(message.id, 'read');
                       }
                     }}
-                    className={`p-4 cursor-pointer hover:bg-gray-50 ${
-                      selectedMessage?.id === message.id ? 'bg-blue-50' : ''
+                    className={`p-4 cursor-pointer hover:bg-gray-900 transition-colors ${
+                      selectedMessage?.id === message.id ? 'bg-blue-900/20 border-l-4 border-blue-500' : ''
                     } ${message.status === 'unread' ? 'font-semibold' : ''}`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
+                        <p className="text-sm font-medium text-white truncate">
                           {message.name}
                         </p>
-                        <p className="text-sm text-gray-500 truncate">
+                        <p className="text-sm text-gray-400 truncate">
                           {message.subject}
                         </p>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-gray-500 mt-1">
                           {new Date(message.createdAt).toLocaleDateString()}
                         </p>
                       </div>
                       {message.status === 'unread' && (
-                        <span className="ml-2 w-2 h-2 bg-blue-600 rounded-full"></span>
+                        <span className="ml-2 w-2 h-2 bg-blue-500 rounded-full"></span>
                       )}
                     </div>
                   </div>
@@ -156,14 +157,14 @@ export default function MessagesPage() {
           {/* Message Detail */}
           <div className="lg:col-span-2">
             {selectedMessage ? (
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-gray-950 border border-gray-800 rounded-lg shadow-lg p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900">
+                    <h3 className="text-xl font-semibold text-white">
                       {selectedMessage.subject}
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      From: <span className="font-medium">{selectedMessage.name}</span> ({selectedMessage.email})
+                    <p className="text-sm text-gray-400 mt-1">
+                      From: <span className="font-medium text-blue-400">{selectedMessage.name}</span> ({selectedMessage.email})
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
                       {new Date(selectedMessage.createdAt).toLocaleString()}
@@ -172,34 +173,37 @@ export default function MessagesPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleStatusChange(selectedMessage.id, selectedMessage.status === 'read' ? 'unread' : 'read')}
-                      className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                      className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors"
                     >
-                      Mark as {selectedMessage.status === 'read' ? 'Unread' : 'Read'}
+                      {selectedMessage.status === 'read' ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {selectedMessage.status === 'read' ? 'Unread' : 'Read'}
                     </button>
                     <button
                       onClick={() => handleDelete(selectedMessage.id)}
-                      className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
+                      className="flex items-center gap-1 px-3 py-1 text-sm bg-red-500/20 text-red-400 border border-red-500/30 rounded hover:bg-red-500/30 transition-colors"
                     >
+                      <Trash2 className="w-4 h-4" />
                       Delete
                     </button>
                   </div>
                 </div>
 
-                <div className="border-t border-gray-200 pt-4">
-                  <p className="text-gray-800 whitespace-pre-wrap">{selectedMessage.message}</p>
+                <div className="border-t border-gray-800 pt-4">
+                  <p className="text-gray-300 whitespace-pre-wrap">{selectedMessage.message}</p>
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-gray-200">
+                <div className="mt-6 pt-4 border-t border-gray-800">
                   <a
                     href={`mailto:${selectedMessage.email}?subject=Re: ${selectedMessage.subject}`}
-                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-blue-500/50"
                   >
-                    📧 Reply via Email
+                    <Mail className="w-4 h-4" />
+                    Reply via Email
                   </a>
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-lg shadow p-12 text-center text-gray-500">
+              <div className="bg-gray-950 border border-gray-800 rounded-lg shadow-lg p-12 text-center text-gray-500">
                 <p className="text-lg">Select a message to view its details</p>
               </div>
             )}

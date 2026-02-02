@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api/client';
 import type { Project, Skill, WorkExperience, Education, Hobby, Testimonial, ContactInfo } from '@/lib/api/client';
+import { Mail, Phone, MapPin, Link as LinkIcon, Github, ExternalLink, Star } from 'lucide-react';
 
 export default function Home() {
   const [lang, setLang] = useState<'en' | 'fr'>('en');
@@ -86,46 +87,46 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="flex min-h-screen items-center justify-center bg-black">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <p className="mt-4 text-gray-400">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-black">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-sm shadow-sm z-50">
+      <nav className="fixed top-0 w-full bg-black/95 backdrop-blur-md border-b border-gray-800 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold gradient-text">
               Portfolio
             </h1>
             <div className="flex items-center gap-6">
-              <a href="#about" className="text-gray-700 hover:text-blue-600 transition-colors">
+              <a href="#about" className="text-gray-300 hover:text-blue-400 transition-colors">
                 {t('About', 'À propos')}
               </a>
-              <a href="#projects" className="text-gray-700 hover:text-blue-600 transition-colors">
+              <a href="#projects" className="text-gray-300 hover:text-blue-400 transition-colors">
                 {t('Projects', 'Projets')}
               </a>
-              <a href="#skills" className="text-gray-700 hover:text-blue-600 transition-colors">
+              <a href="#skills" className="text-gray-300 hover:text-blue-400 transition-colors">
                 {t('Skills', 'Compétences')}
               </a>
-              <a href="#contact" className="text-gray-700 hover:text-blue-600 transition-colors">
+              <a href="#contact" className="text-gray-300 hover:text-blue-400 transition-colors">
                 {t('Contact', 'Contact')}
               </a>
               <button
                 onClick={() => setLang(lang === 'en' ? 'fr' : 'en')}
-                className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-medium hover:bg-blue-200 transition-colors"
+                className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 text-sm font-medium hover:bg-blue-500/30 transition-all border border-blue-500/30"
               >
                 {lang === 'en' ? 'FR' : 'EN'}
               </button>
               <Link
                 href="/dashboard"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all text-sm font-medium shadow-lg shadow-blue-500/20"
               >
                 {t('Admin', 'Admin')}
               </Link>
@@ -135,27 +136,28 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        <div className="max-w-7xl mx-auto text-center">
-          <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-black via-blue-950/20 to-purple-950/20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)]"></div>
+        <div className="max-w-7xl mx-auto text-center relative z-10 animate-fade-in">
+          <h2 className="text-5xl md:text-6xl font-bold text-white mb-6 animate-slide-up">
             {t('Welcome to My Portfolio', 'Bienvenue sur mon Portfolio')}
           </h2>
-          <p className="text-xl text-gray-900 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto animate-slide-up" style={{animationDelay: '0.1s'}}>
             {t(
               'Explore my work, skills, and professional journey',
               'Découvrez mon travail, mes compétences et mon parcours professionnel'
             )}
           </p>
-          <div className="flex gap-4 justify-center">
+          <div className="flex gap-4 justify-center animate-slide-up" style={{animationDelay: '0.2s'}}>
             <a
               href="#projects"
-              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all font-medium shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transform hover:scale-105"
             >
               {t('View Projects', 'Voir les projets')}
             </a>
             <a
               href="#contact"
-              className="px-8 py-3 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium"
+              className="px-8 py-3 border-2 border-blue-500 text-blue-400 rounded-lg hover:bg-blue-500/10 transition-all font-medium hover:border-purple-500 hover:text-purple-400 transform hover:scale-105"
             >
               {t('Get in Touch', 'Me contacter')}
             </a>
@@ -164,32 +166,32 @@ export default function Home() {
       </section>
 
       {/* Projects Section */}
-      <section id="projects" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      <section id="projects" className="py-20 px-4 sm:px-6 lg:px-8 bg-black">
         <div className="max-w-7xl mx-auto">
-          <h3 className="text-4xl font-bold text-center text-gray-900 mb-12">{t('Featured Projects', 'Projets en vedette')}</h3>
+          <h3 className="text-4xl font-bold text-center text-white mb-12 gradient-text">{t('Featured Projects', 'Projets en vedette')}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {data.projects.slice(0, 6).map((project) => (
               <ProjectCard key={project.id} project={project} lang={lang} />
             ))}
           </div>
           {data.projects.length === 0 && (
-            <p className="text-center text-gray-900 text-lg col-span-full">{t('No projects yet', 'Aucun projet pour le moment')}</p>
+            <p className="text-center text-gray-400 text-lg col-span-full">{t('No projects yet', 'Aucun projet pour le moment')}</p>
           )}
         </div>
       </section>
 
       {/* Skills Section */}
-      <section id="skills" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+      <section id="skills" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-black to-gray-950">
         <div className="max-w-7xl mx-auto">
-          <h3 className="text-4xl font-bold text-center text-gray-900 mb-12">{t('Skills & Expertise', 'Compétences et expertise')}</h3>
+          <h3 className="text-4xl font-bold text-center text-white mb-12 gradient-text">{t('Skills & Expertise', 'Compétences et expertise')}</h3>
           <SkillsGrid skills={data.skills} lang={lang} />
         </div>
       </section>
 
       {/* Experience Section */}
-      <section id="experience" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      <section id="experience" className="py-20 px-4 sm:px-6 lg:px-8 bg-black">
         <div className="max-w-4xl mx-auto">
-          <h3 className="text-4xl font-bold text-center text-gray-900 mb-12">{t('Work Experience', 'Expérience professionnelle')}</h3>
+          <h3 className="text-4xl font-bold text-center text-white mb-12 gradient-text">{t('Work Experience', 'Expérience professionnelle')}</h3>
           {data.experiences.length > 0 ? (
             <div className="space-y-8">
               {data.experiences.map((exp) => (
@@ -197,7 +199,7 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <p className="text-center text-gray-900 text-lg">
+            <p className="text-center text-gray-400 text-lg">
               {t('No work experience added yet', 'Aucune expérience professionnelle ajoutée')}
             </p>
           )}
@@ -205,9 +207,9 @@ export default function Home() {
       </section>
 
       {/* Education Section */}
-      <section id="education" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+      <section id="education" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-black to-gray-950">
         <div className="max-w-4xl mx-auto">
-          <h3 className="text-4xl font-bold text-center text-gray-900 mb-12">{t('Education', 'Formation')}</h3>
+          <h3 className="text-4xl font-bold text-center text-white mb-12 gradient-text">{t('Education', 'Formation')}</h3>
           {data.education.length > 0 ? (
             <div className="space-y-8">
               {data.education.map((edu) => (
@@ -215,7 +217,7 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <p className="text-center text-gray-900 text-lg">
+            <p className="text-center text-gray-400 text-lg">
               {t('No education history added yet', 'Aucune formation ajoutée')}
             </p>
           )}
@@ -224,9 +226,9 @@ export default function Home() {
 
       {/* Testimonials Section */}
       {data.testimonials.length > 0 && (
-        <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+        <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-black">
           <div className="max-w-7xl mx-auto">
-            <h3 className="text-4xl font-bold text-center text-gray-900 mb-12">{t('Testimonials', 'Témoignages')}</h3>
+            <h3 className="text-4xl font-bold text-center text-white mb-12 gradient-text">{t('Testimonials', 'Témoignages')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {data.testimonials.slice(0, 6).map((testimonial) => (
                 <TestimonialCard key={testimonial.id} testimonial={testimonial} />
@@ -237,12 +239,12 @@ export default function Home() {
       )}
 
       {/* Submit Testimonial Section */}
-      <section id="submit-testimonial" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-purple-50 to-pink-50">
+      <section id="submit-testimonial" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-purple-950/30 to-pink-950/30">
         <div className="max-w-3xl mx-auto">
-          <h3 className="text-4xl font-bold text-center text-gray-900 mb-4">
+          <h3 className="text-4xl font-bold text-center text-white mb-4 gradient-text">
             {t('Share Your Experience', 'Partagez votre expérience')}
           </h3>
-          <p className="text-center text-gray-900 mb-12">
+          <p className="text-center text-gray-400 mb-12">
             {t(
               'Have you worked with me? I\'d love to hear your feedback!',
               'Avez-vous travaillé avec moi ? J\'aimerais connaître votre avis !'
@@ -253,9 +255,9 @@ export default function Home() {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 to-indigo-50">
+      <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-950/30 to-indigo-950/30">
         <div className="max-w-4xl mx-auto">
-          <h3 className="text-4xl font-bold text-center text-gray-900 mb-12">{t('Get in Touch', 'Contactez-moi')}</h3>
+          <h3 className="text-4xl font-bold text-center text-white mb-12 gradient-text">{t('Get in Touch', 'Contactez-moi')}</h3>
           <ContactForm lang={lang} t={t} />
           {data.contactInfo.length > 0 && (
             <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -268,7 +270,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-8 px-4">
+      <footer className="bg-gray-950 text-gray-400 py-8 px-4 border-t border-gray-800">
         <div className="max-w-7xl mx-auto text-center">
           <p>&copy; 2026 Portfolio. {t('All rights reserved.', 'Tous droits réservés.')}</p>
         </div>
@@ -293,20 +295,20 @@ function ProjectCard({ project, lang }: { project: Project; lang: 'en' | 'fr' })
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+    <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden hover:border-blue-500 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/20 transform hover:scale-105 animate-scale-in group">
       {project.imageUrl && (
-        <div className="h-48 bg-gradient-to-br from-blue-400 to-indigo-500">
+        <div className="h-48 bg-gradient-to-br from-blue-500/20 to-purple-500/20 relative overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={project.imageUrl} alt={getTitle()} className="w-full h-full object-cover" />
+          <img src={project.imageUrl} alt={getTitle()} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
         </div>
       )}
       <div className="p-6">
-        <h4 className="text-xl font-bold text-gray-900 mb-2">{getTitle()}</h4>
-        <p className="text-gray-900 mb-4 line-clamp-3">{getDescription()}</p>
+        <h4 className="text-xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">{getTitle()}</h4>
+        <p className="text-gray-400 mb-4 line-clamp-3">{getDescription()}</p>
         {project.technologies && (
           <div className="flex flex-wrap gap-2 mb-4">
             {project.technologies.slice(0, 3).map((tech, i) => (
-              <span key={i} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+              <span key={i} className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium border border-blue-500/30">
                 {tech}
               </span>
             ))}
@@ -314,13 +316,15 @@ function ProjectCard({ project, lang }: { project: Project; lang: 'en' | 'fr' })
         )}
         <div className="flex gap-3">
           {project.projectUrl && (
-            <a href={project.projectUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-              {lang === 'en' ? 'View Project →' : 'Voir le projet →'}
+            <a href={project.projectUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors">
+              <ExternalLink size={14} />
+              {lang === 'en' ? 'View Project' : 'Voir le projet'}
             </a>
           )}
           {project.githubUrl && (
-            <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-700 text-sm font-medium">
-              GitHub →
+            <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors">
+              <Github size={14} />
+              GitHub
             </a>
           )}
         </div>
@@ -332,7 +336,7 @@ function ProjectCard({ project, lang }: { project: Project; lang: 'en' | 'fr' })
 function SkillsGrid({ skills, lang }: { skills: Skill[]; lang: 'en' | 'fr' }) {
   if (skills.length === 0) {
     return (
-      <p className="text-center text-gray-900 text-lg">
+      <p className="text-center text-gray-400 text-lg">
         {lang === 'en' ? 'No skills added yet' : 'Aucune compétence ajoutée'}
       </p>
     );
@@ -344,32 +348,37 @@ function SkillsGrid({ skills, lang }: { skills: Skill[]; lang: 'en' | 'fr' }) {
     return acc;
   }, {} as Record<string, Skill[]>);
 
+  const colors = ['blue', 'purple', 'pink', 'green', 'yellow', 'red'];
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {Object.entries(grouped).map(([category, categorySkills]) => (
-        <div key={category} className="bg-white rounded-lg shadow p-6">
-          <h4 className="text-lg font-bold mb-4 text-gray-900">{category}</h4>
-          <div className="flex flex-wrap gap-2">
-            {categorySkills.map((skill) => (
-              <span key={skill.id} className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
-                {typeof skill.name === 'object' && skill.name !== null ? skill.name[lang] : skill.name}
-              </span>
-            ))}
+      {Object.entries(grouped).map(([category, categorySkills], index) => {
+        const color = colors[index % colors.length];
+        return (
+          <div key={category} className="bg-gray-900 rounded-lg border border-gray-800 p-6 hover:border-blue-500 transition-all animate-scale-in group">
+            <h4 className={`text-lg font-bold mb-4 text-${color}-400 group-hover:text-${color}-300 transition-colors`}>{category}</h4>
+            <div className="flex flex-wrap gap-2">
+              {categorySkills.map((skill) => (
+                <span key={skill.id} className={`px-3 py-1 bg-${color}-500/20 text-${color}-400 rounded-full text-sm font-medium border border-${color}-500/30 hover:bg-${color}-500/30 transition-colors`}>
+                  {typeof skill.name === 'object' && skill.name !== null ? skill.name[lang] : skill.name}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
 function ExperienceCard({ experience, lang }: { experience: WorkExperience; lang: 'en' | 'fr' }) {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-600">
-      <h4 className="text-xl font-bold text-gray-900">{experience.position[lang]}</h4>
-      <p className="text-lg text-gray-900 mt-1">{experience.company[lang]}</p>
-      <p className="text-sm text-gray-900 mt-1">{experience.location[lang]}</p>
-      <p className="text-sm text-gray-900 mt-3">{experience.description[lang]}</p>
-      <p className="text-sm text-gray-700 mt-3">
+    <div className="bg-gray-900 rounded-lg border border-gray-800 border-l-4 border-l-blue-500 p-6 hover:border-blue-500 transition-all hover:shadow-lg hover:shadow-blue-500/20 animate-slide-up group">
+      <h4 className="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">{experience.position[lang]}</h4>
+      <p className="text-lg text-blue-400 mt-1">{experience.company[lang]}</p>
+      <p className="text-sm text-gray-400 mt-1">{experience.location[lang]}</p>
+      <p className="text-sm text-gray-300 mt-3">{experience.description[lang]}</p>
+      <p className="text-sm text-gray-500 mt-3">
         {experience.startDate} - {experience.current ? (lang === 'en' ? 'Present' : 'Présent') : experience.endDate}
       </p>
     </div>
@@ -378,12 +387,12 @@ function ExperienceCard({ experience, lang }: { experience: WorkExperience; lang
 
 function EducationCard({ education, lang }: { education: Education; lang: 'en' | 'fr' }) {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h4 className="text-xl font-bold text-gray-900">{education.degree[lang]}</h4>
-      <p className="text-lg text-gray-900 mt-1">{education.institution[lang]}</p>
-      <p className="text-sm text-gray-900 mt-1">{education.location[lang]}</p>
-      {education.description && <p className="text-sm text-gray-900 mt-3">{education.description[lang]}</p>}
-      <div className="flex gap-4 mt-3 text-sm text-gray-700">
+    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 hover:border-purple-500 transition-all hover:shadow-lg hover:shadow-purple-500/20 animate-slide-up group">
+      <h4 className="text-xl font-bold text-white group-hover:text-purple-400 transition-colors">{education.degree[lang]}</h4>
+      <p className="text-lg text-purple-400 mt-1">{education.institution[lang]}</p>
+      <p className="text-sm text-gray-400 mt-1">{education.location[lang]}</p>
+      {education.description && <p className="text-sm text-gray-300 mt-3">{education.description[lang]}</p>}
+      <div className="flex gap-4 mt-3 text-sm text-gray-500">
         <span>{education.startDate} - {education.endDate || (lang === 'en' ? 'Present' : 'Présent')}</span>
         {education.gpa && <span>GPA: {education.gpa}</span>}
       </div>
@@ -393,17 +402,21 @@ function EducationCard({ education, lang }: { education: Education; lang: 'en' |
 
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-gray-900 rounded-lg border border-gray-800 p-6 hover:border-pink-500 transition-all hover:shadow-lg hover:shadow-pink-500/20 animate-scale-in group">
       <div className="flex mb-3">
         {[...Array(5)].map((_, i) => (
-          <span key={i} className={i < testimonial.rating ? 'text-yellow-400' : 'text-gray-300'}>★</span>
+          <Star
+            key={i}
+            size={20}
+            className={i < testimonial.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}
+          />
         ))}
       </div>
-      <p className="text-gray-900 mb-4 italic">&quot;{testimonial.message}&quot;</p>
+      <p className="text-gray-300 mb-4 italic">&quot;{testimonial.message}&quot;</p>
       <div>
-        <p className="font-semibold text-gray-900">{testimonial.name}</p>
-        <p className="text-sm text-gray-900">{testimonial.position}</p>
-        {testimonial.company && <p className="text-sm text-gray-900">{testimonial.company}</p>}
+        <p className="font-semibold text-white">{testimonial.name}</p>
+        <p className="text-sm text-pink-400">{testimonial.position}</p>
+        {testimonial.company && <p className="text-sm text-gray-400">{testimonial.company}</p>}
       </div>
     </div>
   );
@@ -412,17 +425,19 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 function ContactInfoCard({ info }: { info: ContactInfo }) {
   const getIcon = (type: string) => {
     switch (type) {
-      case 'email': return '📧';
-      case 'phone': return '📱';
-      case 'address': return '📍';
-      default: return '🔗';
+      case 'email': return Mail;
+      case 'phone': return Phone;
+      case 'address': return MapPin;
+      default: return LinkIcon;
     }
   };
 
+  const Icon = getIcon(info.type);
+
   return (
-    <div className="bg-white rounded-lg shadow p-4 text-center">
-      <div className="text-3xl mb-2">{getIcon(info.type)}</div>
-      <p className="text-gray-900 font-medium">{info.value}</p>
+    <div className="bg-gray-900 rounded-lg border border-gray-800 p-4 text-center hover:border-blue-500 transition-all hover:shadow-lg hover:shadow-blue-500/20 transform hover:scale-105">
+      <Icon className="w-8 h-8 mx-auto mb-2 text-blue-400" />
+      <p className="text-gray-300 font-medium">{info.value}</p>
     </div>
   );
 }
@@ -460,10 +475,10 @@ function TestimonialForm({ lang, t }: { lang: 'en' | 'fr'; t: (en: string, fr: s
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8">
+    <form onSubmit={handleSubmit} className="bg-gray-900 rounded-lg border border-gray-800 p-8 shadow-xl">
       {status === 'success' && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-green-800 text-center font-medium">
+        <div className="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-lg">
+          <p className="text-green-400 text-center font-medium">
             {t(
               '✓ Thank you! Your testimonial has been submitted and will be reviewed shortly.',
               '✓ Merci ! Votre témoignage a été soumis et sera examiné prochainement.'
@@ -474,7 +489,7 @@ function TestimonialForm({ lang, t }: { lang: 'en' | 'fr'; t: (en: string, fr: s
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-2">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             {t('Your Name', 'Votre nom')} *
           </label>
           <input
@@ -482,12 +497,12 @@ function TestimonialForm({ lang, t }: { lang: 'en' | 'fr'; t: (en: string, fr: s
             required
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder-gray-500"
             placeholder={t('John Doe', 'Jean Dupont')}
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-2">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             {t('Email', 'Email')} *
           </label>
           <input
@@ -495,7 +510,7 @@ function TestimonialForm({ lang, t }: { lang: 'en' | 'fr'; t: (en: string, fr: s
             required
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder-gray-500"
             placeholder="john@example.com"
           />
         </div>
@@ -503,7 +518,7 @@ function TestimonialForm({ lang, t }: { lang: 'en' | 'fr'; t: (en: string, fr: s
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-2">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             {t('Position', 'Poste')} *
           </label>
           <input
@@ -511,26 +526,26 @@ function TestimonialForm({ lang, t }: { lang: 'en' | 'fr'; t: (en: string, fr: s
             required
             value={formData.position}
             onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder-gray-500"
             placeholder={t('Software Engineer', 'Ingénieur logiciel')}
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-2">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             {t('Company (Optional)', 'Entreprise (Optionnel)')}
           </label>
           <input
             type="text"
             value={formData.company}
             onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder-gray-500"
             placeholder={t('Tech Corp', 'Tech Corp')}
           />
         </div>
       </div>
 
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-900 mb-2">
+        <label className="block text-sm font-medium text-gray-300 mb-2">
           {t('Rating', 'Note')} *
         </label>
         <div className="flex gap-2">
@@ -539,21 +554,22 @@ function TestimonialForm({ lang, t }: { lang: 'en' | 'fr'; t: (en: string, fr: s
               key={star}
               type="button"
               onClick={() => setFormData({ ...formData, rating: star })}
-              className="text-3xl transition-colors focus:outline-none"
+              className="transition-all focus:outline-none hover:scale-110 transform"
             >
-              <span className={star <= formData.rating ? 'text-yellow-400' : 'text-gray-300'}>
-                ★
-              </span>
+              <Star
+                size={28}
+                className={star <= formData.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}
+              />
             </button>
           ))}
-          <span className="ml-2 text-gray-900 self-center">
+          <span className="ml-2 text-gray-400 self-center">
             {formData.rating} / 5
           </span>
         </div>
       </div>
 
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-900 mb-2">
+        <label className="block text-sm font-medium text-gray-300 mb-2">
           {t('Your Testimonial', 'Votre témoignage')} *
         </label>
         <textarea
@@ -561,7 +577,7 @@ function TestimonialForm({ lang, t }: { lang: 'en' | 'fr'; t: (en: string, fr: s
           rows={5}
           value={formData.message}
           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+          className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder-gray-500"
           placeholder={t(
             'Share your experience working with me...',
             'Partagez votre expérience de travail avec moi...'
@@ -572,7 +588,7 @@ function TestimonialForm({ lang, t }: { lang: 'en' | 'fr'; t: (en: string, fr: s
       <button
         type="submit"
         disabled={status === 'sending' || status === 'success'}
-        className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transform hover:scale-105"
       >
         {status === 'sending' ? t('Submitting...', 'Envoi en cours...') : 
          status === 'success' ? t('Submitted Successfully!', 'Soumis avec succès !') :
@@ -581,7 +597,7 @@ function TestimonialForm({ lang, t }: { lang: 'en' | 'fr'; t: (en: string, fr: s
       </button>
 
       {status !== 'success' && (
-        <p className="mt-4 text-sm text-gray-900 text-center">
+        <p className="mt-4 text-sm text-gray-400 text-center">
           {t(
             'Your testimonial will be reviewed before being published.',
             'Votre témoignage sera examiné avant d\'être publié.'
@@ -611,10 +627,10 @@ function ContactForm({ lang, t }: { lang: 'en' | 'fr'; t: (en: string, fr: strin
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8">
+    <form onSubmit={handleSubmit} className="bg-gray-900 rounded-lg border border-gray-800 p-8 shadow-xl">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-2">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             {t('Name', 'Nom')} *
           </label>
           <input
@@ -622,11 +638,11 @@ function ContactForm({ lang, t }: { lang: 'en' | 'fr'; t: (en: string, fr: strin
             required
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-2">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             {t('Email', 'Email')} *
           </label>
           <input
@@ -634,12 +650,12 @@ function ContactForm({ lang, t }: { lang: 'en' | 'fr'; t: (en: string, fr: strin
             required
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-500"
           />
         </div>
       </div>
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-900 mb-2">
+        <label className="block text-sm font-medium text-gray-300 mb-2">
           {t('Subject', 'Sujet')} *
         </label>
         <input
@@ -647,11 +663,11 @@ function ContactForm({ lang, t }: { lang: 'en' | 'fr'; t: (en: string, fr: strin
           required
           value={formData.subject}
           onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-500"
         />
       </div>
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-900 mb-2">
+        <label className="block text-sm font-medium text-gray-300 mb-2">
           {t('Message', 'Message')} *
         </label>
         <textarea
@@ -659,13 +675,13 @@ function ContactForm({ lang, t }: { lang: 'en' | 'fr'; t: (en: string, fr: strin
           rows={5}
           value={formData.message}
           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+          className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-500"
         />
       </div>
       <button
         type="submit"
         disabled={status === 'sending'}
-        className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
+        className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all font-medium disabled:opacity-50 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transform hover:scale-105"
       >
         {status === 'sending' ? t('Sending...', 'Envoi...') : 
          status === 'success' ? t('Message sent!', 'Message envoyé!') :

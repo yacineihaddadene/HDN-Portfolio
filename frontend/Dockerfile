@@ -2,11 +2,11 @@ FROM node:20-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk add --no-cache libc6-compat wget
+RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -20,6 +20,9 @@ ARG NEXT_PUBLIC_AUTH_SERVICE_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_AUTH_SERVICE_URL=$NEXT_PUBLIC_AUTH_SERVICE_URL
 
+# Disable telemetry during build
+ENV NEXT_TELEMETRY_DISABLED=1
+
 RUN npm run build
 
 # Production image
@@ -27,6 +30,7 @@ FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
