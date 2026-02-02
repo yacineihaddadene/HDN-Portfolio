@@ -115,7 +115,7 @@ export const resumes = pgTable("resumes", {
 export const contactInfo = pgTable("contact_info", {
   id: uuid("id").defaultRandom().primaryKey(),
   type: text("type").notNull(),
-  value: text("value").notNull(),
+  value: jsonb("value").notNull().$type<{ en: string; fr: string }>(),
   order: integer("order").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

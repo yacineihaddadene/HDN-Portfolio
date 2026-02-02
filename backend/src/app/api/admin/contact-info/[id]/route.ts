@@ -38,7 +38,12 @@ export async function PUT(
     }
 
     // Build update object
-    const updateData: any = {};
+    const updateData: {
+      type?: string;
+      value?: { en: string; fr: string };
+      order?: number;
+      updatedAt?: Date;
+    } = {};
 
     if (body.type !== undefined) {
       if (!validateNotEmpty(body.type)) {
@@ -57,13 +62,23 @@ export async function PUT(
     }
 
     if (body.value !== undefined) {
-      if (!validateNotEmpty(body.value)) {
+      // Validate bilingual value
+      if (!body.value || typeof body.value !== 'object' || !body.value.en || !body.value.fr) {
         return NextResponse.json(
-          { error: "Value cannot be empty" },
+          { error: "Value must be an object with 'en' and 'fr' properties" },
           { status: 400 }
         );
       }
-      updateData.value = sanitizeText(body.value);
+      if (!validateNotEmpty(body.value.en) || !validateNotEmpty(body.value.fr)) {
+        return NextResponse.json(
+          { error: "Both English and French values are required" },
+          { status: 400 }
+        );
+      }
+      updateData.value = {
+        en: sanitizeText(body.value.en),
+        fr: sanitizeText(body.value.fr),
+      };
     }
 
     if (body.order !== undefined) {

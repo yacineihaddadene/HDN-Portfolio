@@ -235,17 +235,17 @@ async function seed() {
     const contactInfoData = [
       {
         type: "email",
-        value: "demo@example.com",
+        value: { en: "demo@example.com", fr: "demo@exemple.com" },
         order: 1,
       },
       {
         type: "phone",
-        value: "+1 (555) 000-0000",
+        value: { en: "+1 (555) 000-0000", fr: "+33 1 23 45 67 89" },
         order: 2,
       },
       {
-        type: "location",
-        value: "Sample City, ST",
+        type: "address",
+        value: { en: "Sample City, ST, USA", fr: "Ville Exemple, France" },
         order: 3,
       },
     ];

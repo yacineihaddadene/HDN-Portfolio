@@ -114,7 +114,7 @@ export interface Resume {
 export interface ContactInfo {
   id: string;
   type: string;
-  value: string;
+  value: BilingualField;
   order: number;
   createdAt: string;
   updatedAt: string;

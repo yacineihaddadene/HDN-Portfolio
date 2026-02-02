@@ -108,7 +108,11 @@ export default function ContactInfoPage() {
                 {items.map((info) => (
                   <div key={info.id} className="flex justify-between items-center p-3 bg-black border border-gray-800 rounded">
                     <div className="flex-1">
-                      <p className="text-sm text-gray-300">{info.value}</p>
+                      <p className="text-sm text-gray-300">
+                        {typeof info.value === 'object' && info.value !== null 
+                          ? `EN: ${info.value.en} | FR: ${info.value.fr}` 
+                          : info.value}
+                      </p>
                       <p className="text-xs text-gray-500">Order: {info.order}</p>
                     </div>
                     <div className="flex gap-2">
@@ -161,7 +165,8 @@ export default function ContactInfoPage() {
 function ContactInfoModal({ info, onClose, onSave, showToast }: any) {
   const [formData, setFormData] = useState({
     type: info?.type || 'email',
-    value: info?.value || '',
+    valueEn: typeof info?.value === 'object' ? info.value.en : (info?.value || ''),
+    valueFr: typeof info?.value === 'object' ? info.value.fr : (info?.value || ''),
     order: info?.order || 0,
   });
   const [saving, setSaving] = useState(false);
@@ -170,10 +175,19 @@ function ContactInfoModal({ info, onClose, onSave, showToast }: any) {
     e.preventDefault();
     setSaving(true);
     try {
+      const dataToSend = {
+        type: formData.type,
+        value: {
+          en: formData.valueEn,
+          fr: formData.valueFr,
+        },
+        order: formData.order,
+      };
+      
       if (info) {
-        await apiClient.updateContactInfo(info.id, formData);
+        await apiClient.updateContactInfo(info.id, dataToSend);
       } else {
-        await apiClient.createContactInfo(formData);
+        await apiClient.createContactInfo(dataToSend);
       }
       onSave();
     } catch (error: any) {
@@ -196,10 +210,32 @@ function ContactInfoModal({ info, onClose, onSave, showToast }: any) {
               <option value="social_links">Social Links</option>
             </select>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Value *</label>
-            <input type="text" required value={formData.value} onChange={(e) => setFormData({ ...formData, value: e.target.value })} className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder={formData.type === 'email' ? 'contact@example.com' : formData.type === 'phone' ? '+1234567890' : formData.type === 'address' ? '123 Main St' : 'https://...'} />
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Value (English) *</label>
+              <input 
+                type="text" 
+                required 
+                value={formData.valueEn} 
+                onChange={(e) => setFormData({ ...formData, valueEn: e.target.value })} 
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                placeholder={formData.type === 'email' ? 'contact@example.com' : formData.type === 'phone' ? '+1234567890' : formData.type === 'address' ? '123 Main St, City' : 'https://...'} 
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Value (French) *</label>
+              <input 
+                type="text" 
+                required 
+                value={formData.valueFr} 
+                onChange={(e) => setFormData({ ...formData, valueFr: e.target.value })} 
+                className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                placeholder={formData.type === 'email' ? 'contact@exemple.com' : formData.type === 'phone' ? '+33123456789' : formData.type === 'address' ? '123 Rue Principale, Ville' : 'https://...'} 
+              />
+            </div>
           </div>
+          
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Order</label>
             <input type="number" value={formData.order} onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) })} className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />

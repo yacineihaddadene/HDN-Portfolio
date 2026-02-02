@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, contactInfo } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth/jwt-verification";
-import { eq } from "drizzle-orm";
 import { asc } from "drizzle-orm";
 import { validateNotEmpty, sanitizeText } from "@/lib/utils/validation";
 
@@ -51,16 +50,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!validateNotEmpty(value)) {
+    // Validate bilingual value
+    if (!value || typeof value !== 'object' || !value.en || !value.fr) {
       return NextResponse.json(
-        { error: "Value is required" },
+        { error: "Value must be an object with 'en' and 'fr' properties" },
+        { status: 400 }
+      );
+    }
+
+    if (!validateNotEmpty(value.en) || !validateNotEmpty(value.fr)) {
+      return NextResponse.json(
+        { error: "Both English and French values are required" },
         { status: 400 }
       );
     }
 
     // Sanitize
     const sanitizedType = sanitizeText(type);
-    const sanitizedValue = sanitizeText(value);
+    const sanitizedValue = {
+      en: sanitizeText(value.en),
+      fr: sanitizeText(value.fr),
+    };
     const orderValue = order ? parseInt(order, 10) : 0;
 
     const [newContactInfo] = await db

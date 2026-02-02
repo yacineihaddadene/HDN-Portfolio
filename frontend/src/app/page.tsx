@@ -517,7 +517,7 @@ export default function Home() {
           {data.contactInfo.length > 0 && (
             <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
               {data.contactInfo.map((info) => (
-                <ContactInfoCard key={info.id} info={info} />
+                <ContactInfoCard key={info.id} info={info} lang={lang} />
               ))}
             </div>
           )}
@@ -702,7 +702,7 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
   );
 }
 
-function ContactInfoCard({ info }: { info: ContactInfo }) {
+function ContactInfoCard({ info, lang }: { info: ContactInfo; lang: 'en' | 'fr' }) {
   const getIcon = (type: string) => {
     switch (type) {
       case 'email': return Mail;
@@ -714,10 +714,17 @@ function ContactInfoCard({ info }: { info: ContactInfo }) {
 
   const Icon = getIcon(info.type);
 
+  const getValue = () => {
+    if (typeof info.value === 'object' && info.value !== null) {
+      return info.value[lang] || info.value.en || '';
+    }
+    return info.value || '';
+  };
+
   return (
     <div className="bg-gray-900 rounded-lg border border-gray-800 p-4 text-center hover:border-blue-500 transition-all hover:shadow-lg hover:shadow-blue-500/20 transform hover:scale-105">
       <Icon className="w-8 h-8 mx-auto mb-2 text-blue-400" />
-      <p className="text-gray-300 font-medium">{info.value}</p>
+      <p className="text-gray-300 font-medium">{getValue()}</p>
     </div>
   );
 }
