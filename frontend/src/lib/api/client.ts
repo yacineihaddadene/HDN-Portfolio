@@ -105,6 +105,7 @@ export interface Resume {
   id: string;
   filename: string;
   fileUrl: string;
+  language: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -523,8 +524,8 @@ export class ApiClient {
     return this.request<{ testimonials: Testimonial[] }>('/api/public/testimonials');
   }
 
-  async getPublicResume() {
-    return this.request<{ resume: Resume }>('/api/public/resume');
+  async getPublicResume(lang: 'en' | 'fr' = 'en') {
+    return this.request<{ resume: Resume }>(`/api/public/resume?lang=${lang}`);
   }
 
   async getPublicContactInfo() {

@@ -94,6 +94,7 @@ export default function ResumePage() {
             <thead className="bg-black">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Filename</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Language</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Uploaded</th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase">Actions</th>
@@ -101,11 +102,16 @@ export default function ResumePage() {
             </thead>
             <tbody className="bg-gray-950 divide-y divide-gray-800">
               {resumes.length === 0 ? (
-                <tr><td colSpan={4} className="px-6 py-4 text-center text-gray-500">No resumes found.</td></tr>
+                <tr><td colSpan={5} className="px-6 py-4 text-center text-gray-500">No resumes found.</td></tr>
               ) : (
                 resumes.map((resume) => (
                   <tr key={resume.id} className={resume.isActive ? 'bg-blue-900/20' : ''}>
                     <td className="px-6 py-4 text-sm text-gray-300">{resume.filename}</td>
+                    <td className="px-6 py-4 text-sm">
+                      <span className="inline-flex items-center px-2 py-1 text-xs rounded bg-gray-800 text-gray-300 border border-gray-700">
+                        {resume.language === 'fr' ? 'French' : 'English'}
+                      </span>
+                    </td>
                     <td className="px-6 py-4 text-sm">
                       <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded ${resume.isActive ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-gray-800 text-gray-400'}`}>
                         {resume.isActive ? <><CheckCircle className="w-3 h-3" /> Active</> : <><XCircle className="w-3 h-3" /> Inactive</>}
@@ -135,6 +141,7 @@ function ResumeModal({ resume, onClose, onSave }: any) {
   const [formData, setFormData] = useState({
     filename: resume?.filename || '',
     fileUrl: resume?.fileUrl || '',
+    language: resume?.language || 'en',
     isActive: resume?.isActive || false,
   });
   const [saving, setSaving] = useState(false);
@@ -201,6 +208,7 @@ function ResumeModal({ resume, onClose, onSave }: any) {
       const dataToSave = {
         filename: formData.filename,
         fileUrl: fileUrl,
+        language: formData.language,
         isActive: formData.isActive,
       };
 
@@ -313,6 +321,19 @@ function ResumeModal({ resume, onClose, onSave }: any) {
                   placeholder="My_Resume.pdf"
                 />
               </div>
+
+              {/* Language Selector */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Language</label>
+                <select
+                  value={formData.language}
+                  onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+                  className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="en">English</option>
+                  <option value="fr">French</option>
+                </select>
+              </div>
             </>
           ) : (
             <>
@@ -341,6 +362,19 @@ function ResumeModal({ resume, onClose, onSave }: any) {
                 <p className="text-xs text-gray-500 mt-1">
                   Upload your resume to a file hosting service (Google Drive, Dropbox, etc.) and paste the public URL here.
                 </p>
+              </div>
+
+              {/* Language Selector */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Language</label>
+                <select
+                  value={formData.language}
+                  onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+                  className="w-full px-3 py-2 bg-black border border-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="en">English</option>
+                  <option value="fr">French</option>
+                </select>
               </div>
             </>
           )}

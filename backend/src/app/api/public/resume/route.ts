@@ -6,14 +6,14 @@ import { eq } from "drizzle-orm";
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const lang = validateLanguage(searchParams.get("lang")); // For consistency
+    const lang = validateLanguage(searchParams.get("lang"));
 
-    // Get active resume
+    // Get active resume for the specified language
     const activeResume = await db
       .select()
       .from(resumes)
       .where(eq(resumes.isActive, true))
-      .limit(1);
+      .limit(2); // Get up to 2 to check for language-specific
 
     if (activeResume.length === 0) {
       return NextResponse.json(
@@ -22,7 +22,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const resume = activeResume[0];
+    // Try to find resume matching the requested language
+    let resume = activeResume.find(r => r.language === lang);
+    
+    // If no language-specific resume found, fall back to first active resume
+    if (!resume) {
+      resume = activeResume[0];
+    }
     return NextResponse.json({
       resume: {
         id: resume.id,

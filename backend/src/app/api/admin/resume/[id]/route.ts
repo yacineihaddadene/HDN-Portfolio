@@ -21,7 +21,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { filename, fileUrl, isActive } = body;
+    const { filename, fileUrl, isActive, language } = body;
 
     // Check if resume exists first
     const [existingResume] = await db
@@ -39,6 +39,7 @@ export async function PUT(
       filename?: string;
       fileUrl?: string;
       isActive?: boolean;
+      language?: string;
       updatedAt: Date;
     } = {
       updatedAt: new Date(),
@@ -66,16 +67,24 @@ export async function PUT(
       updateData.fileUrl = fileUrl;
     }
 
+    // If language is provided, validate and update it
+    if (language !== undefined) {
+      updateData.language = language === 'fr' ? 'fr' : 'en';
+    }
+
+    // Determine the language to use for deactivation
+    const targetLanguage = updateData.language || existingResume.language;
+
     // If isActive is provided, update it
     if (isActive !== undefined) {
       updateData.isActive = isActive;
       
-      // If setting this resume as active, deactivate all others first
+      // If setting this resume as active, deactivate all others with the same language
       if (isActive) {
         await db
           .update(resumes)
           .set({ isActive: false })
-          .where(eq(resumes.isActive, true));
+          .where(eq(resumes.language, targetLanguage));
       }
     }
 

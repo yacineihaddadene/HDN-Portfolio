@@ -24,6 +24,27 @@ export default function Home() {
     loadData();
   }, []);
 
+  // Reload resume when language changes
+  useEffect(() => {
+    loadResume();
+  }, [lang]);
+
+  const loadResume = async () => {
+    try {
+      const resume = await apiClient.getPublicResume(lang).catch((err) => {
+        console.error('Failed to load resume:', err);
+        return { resume: null };
+      });
+      
+      setData(prevData => ({
+        ...prevData,
+        resume: resume.resume || null,
+      }));
+    } catch (error) {
+      console.error('Failed to load resume:', error);
+    }
+  };
+
   const loadData = async () => {
     setLoading(true);
     try {
@@ -56,7 +77,7 @@ export default function Home() {
           console.error('Failed to load contact info:', err);
           return { contactInfo: [] };
         }),
-        apiClient.getPublicResume().catch((err) => {
+        apiClient.getPublicResume(lang).catch((err) => {
           console.error('Failed to load resume:', err);
           return { resume: null };
         }),
@@ -124,6 +145,15 @@ export default function Home() {
               </a>
               <a href="#skills" className="text-gray-300 hover:text-blue-400 transition-colors">
                 {t('Skills', 'Compétences')}
+              </a>
+              <a href="#experience" className="text-gray-300 hover:text-blue-400 transition-colors">
+                {t('Experience', 'Expérience')}
+              </a>
+              <a href="#education" className="text-gray-300 hover:text-blue-400 transition-colors">
+                {t('Education', 'Formation')}
+              </a>
+              <a href="#hobbies" className="text-gray-300 hover:text-blue-400 transition-colors">
+                {t('Hobbies', 'Loisirs')}
               </a>
               <a href="#resume" className="text-gray-300 hover:text-blue-400 transition-colors">
                 {t('Resume', 'CV')}
@@ -232,6 +262,26 @@ export default function Home() {
           ) : (
             <p className="text-center text-gray-400 text-lg">
               {t('No education history added yet', 'Aucune formation ajoutée')}
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* Hobbies & Interests Section */}
+      <section id="hobbies" className="py-20 px-4 sm:px-6 lg:px-8 bg-black">
+        <div className="max-w-7xl mx-auto">
+          <h3 className="text-4xl font-bold text-center text-white mb-12 gradient-text">
+            {t('Hobbies & Interests', 'Loisirs et intérêts')}
+          </h3>
+          {data.hobbies.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {data.hobbies.map((hobby) => (
+                <HobbyCard key={hobby.id} hobby={hobby} lang={lang} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-400 text-lg">
+              {t('No hobbies added yet', 'Aucun loisir ajouté')}
             </p>
           )}
         </div>
@@ -490,6 +540,31 @@ function EducationCard({ education, lang }: { education: Education; lang: 'en' |
         <span>{education.startDate} - {education.endDate || (lang === 'en' ? 'Present' : 'Présent')}</span>
         {education.gpa && <span>GPA: {education.gpa}</span>}
       </div>
+    </div>
+  );
+}
+
+function HobbyCard({ hobby, lang }: { hobby: Hobby; lang: 'en' | 'fr' }) {
+  return (
+    <div 
+      className="bg-gray-900 rounded-lg border border-gray-800 p-6 hover:border-pink-500 transition-all hover:shadow-lg hover:shadow-pink-500/20 animate-scale-in group overflow-hidden relative"
+      style={{ backgroundColor: hobby.color ? `${hobby.color}10` : undefined }}
+    >
+      {hobby.imageUrl && (
+        <div className="w-full h-48 mb-4 rounded-lg overflow-hidden">
+          <img 
+            src={hobby.imageUrl} 
+            alt={hobby.title[lang]} 
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          />
+        </div>
+      )}
+      <h4 className="text-xl font-bold text-white group-hover:text-pink-400 transition-colors">
+        {hobby.title[lang]}
+      </h4>
+      {hobby.description && (
+        <p className="text-sm text-gray-300 mt-3">{hobby.description[lang]}</p>
+      )}
     </div>
   );
 }

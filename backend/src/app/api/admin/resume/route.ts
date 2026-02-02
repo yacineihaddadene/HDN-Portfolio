@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { filename, fileUrl, isActive } = body;
+    const { filename, fileUrl, isActive, language } = body;
 
     // Validation
     if (!validateNotEmpty(filename)) {
@@ -52,11 +52,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate language
+    const resumeLanguage = language === 'fr' ? 'fr' : 'en';
+
     const sanitizedFilename = sanitizeText(filename);
 
-    // If setting this as active, deactivate all others first
+    // If setting this as active, deactivate all others with the same language
     if (isActive) {
-      await db.update(resumes).set({ isActive: false });
+      await db.update(resumes)
+        .set({ isActive: false })
+        .where(eq(resumes.language, resumeLanguage));
     }
 
     // Create new resume
@@ -65,6 +70,7 @@ export async function POST(request: NextRequest) {
       .values({
         filename: sanitizedFilename,
         fileUrl,
+        language: resumeLanguage,
         isActive: isActive || false,
       })
       .returning();
