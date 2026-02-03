@@ -1,19 +1,23 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { authClient } from '@/lib/auth/auth-client';
-import { useRouter } from 'next/navigation';
+import { useState } from "react";
+import { authClient } from "@/lib/auth/auth-client";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
@@ -23,85 +27,181 @@ export default function LoginPage() {
       });
 
       if (error) {
-        setError(error.message || 'Login failed');
+        setError(error.message || "Login failed");
         setLoading(false);
         return;
       }
 
       // Redirect to dashboard on success
-      router.push('/dashboard');
+      router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      setError(err.message || "An error occurred");
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-black">
-      <div className="w-full max-w-md space-y-8 p-8 bg-gray-900 border border-gray-800 rounded-lg shadow-xl">
-        <div>
-          <h2 className="text-3xl font-bold text-center gradient-text">Sign in</h2>
-          <p className="mt-2 text-center text-gray-400">
-            Sign in to access your dashboard
+    <div className="admin-theme min-h-screen bg-background flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Animated background gradients */}
+      <motion.div
+        className="absolute inset-0 opacity-20"
+        style={{
+          background:
+            "radial-gradient(circle at 30% 30%, hsl(270 80% 65% / 0.3) 0%, transparent 50%)",
+        }}
+        animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.3, 0.2] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute inset-0 opacity-20"
+        style={{
+          background:
+            "radial-gradient(circle at 70% 70%, hsl(220 90% 60% / 0.3) 0%, transparent 50%)",
+        }}
+        animate={{ scale: [1.2, 1, 1.2], opacity: [0.1, 0.2, 0.1] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md relative z-10"
+      >
+        <div className="text-center mb-8">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", delay: 0.2 }}
+            className="w-16 h-16 rounded-full bg-foreground/10 flex items-center justify-center mx-auto mb-4 border border-border shadow-lg"
+          >
+            <Lock className="w-8 h-8 text-foreground" />
+          </motion.div>
+          <h1 className="font-display text-3xl font-bold mb-2 text-foreground">
+            Admin Login
+          </h1>
+          <p className="text-muted-foreground">
+            Enter your credentials to continue
           </p>
         </div>
-        
+
         {error && (
-          <div className="bg-red-500/20 border border-red-500/50 text-red-400 px-4 py-3 rounded">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 bg-red-500/20 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg"
+          >
             {error}
-          </div>
+          </motion.div>
         )}
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-500"
-                placeholder="admin@test.com"
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300">
-                Password
-              </label>
+        <motion.form
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          onSubmit={handleSubmit}
+          className="space-y-6"
+        >
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-muted-foreground mb-2"
+            >
+              Email Address
+            </label>
+            <input
+              id="email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 bg-card border border-border text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent placeholder-muted-foreground transition-all"
+              placeholder="admin@test.com"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-muted-foreground mb-2"
+            >
+              Password
+            </label>
+            <div className="relative">
               <input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-500"
-                placeholder="password123"
+                className="w-full px-4 py-3 bg-card border border-border text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent placeholder-muted-foreground pr-12 transition-all"
+                placeholder="Enter your password"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
             </div>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center py-2 px-4 rounded-md text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transform hover:scale-105 transition-all"
+            className="w-full py-3 px-4 bg-foreground text-background hover:bg-foreground/90 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
           >
-            {loading ? 'Signing in...' : 'Sign in'}
+            {loading ? "Signing in..." : "Sign in"}
           </button>
-        </form>
+        </motion.form>
 
-        <div className="mt-6 p-4 bg-blue-500/10 rounded-lg border border-blue-500/30">
-          <p className="text-sm font-semibold text-blue-400 text-center mb-2">Test Credentials:</p>
-          <div className="space-y-1 text-sm text-gray-300">
-            <p className="font-mono text-center">📧 Email: <span className="font-bold text-blue-400">admin@test.com</span></p>
-            <p className="font-mono text-center">🔑 Password: <span className="font-bold text-blue-400">password123</span></p>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="mt-6"
+        >
+          <div className="p-4 bg-muted/50 rounded-lg border border-border">
+            <p className="text-sm font-semibold text-foreground text-center mb-2">
+              Test Credentials
+            </p>
+            <div className="space-y-1 text-sm text-muted-foreground text-center">
+              <p className="font-mono">
+                Email:{" "}
+                <code className="bg-card px-2 py-1 rounded text-foreground">
+                  admin@test.com
+                </code>
+              </p>
+              <p className="font-mono">
+                Password:{" "}
+                <code className="bg-card px-2 py-1 rounded text-foreground">
+                  password123
+                </code>
+              </p>
+            </div>
           </div>
-        </div>
-      </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="text-center"
+        >
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            Back to portfolio
+          </Link>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

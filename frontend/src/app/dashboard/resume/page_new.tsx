@@ -47,33 +47,14 @@ export default function ResumePage() {
   const handleUpload = async () => {
     try {
       if (uploadMode === "url" && fileUrl) {
-        await apiClient.createResume({
-          fileUrl,
-          language,
-          isActive: false,
-          filename: "Resume.pdf",
-        });
+        await apiClient.createResume({ fileUrl, language, isActive: false });
         showToast("Resume URL added successfully", "success");
         setFileUrl("");
         setShowUploadForm(false);
         await loadResumes();
       } else if (uploadMode === "file" && selectedFile) {
-        // Upload the file first
-        showToast("Uploading file...", "info");
-        const uploadResult = await apiClient.uploadResumeFile(selectedFile);
-
-        // Then create the resume entry with the uploaded file URL
-        await apiClient.createResume({
-          fileUrl: uploadResult.fileUrl,
-          language,
-          isActive: false,
-          filename: uploadResult.filename,
-        });
-
-        showToast("Resume uploaded successfully", "success");
-        setSelectedFile(null);
-        setShowUploadForm(false);
-        await loadResumes();
+        // In a real scenario, you'd upload the file to a storage service first
+        showToast("File upload not yet implemented", "warning");
       }
     } catch (error: any) {
       showToast(`Failed to upload: ${error.message}`, "error");
@@ -151,9 +132,9 @@ export default function ResumePage() {
                 </button>
                 <button
                   onClick={() => setUploadMode("file")}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg ${uploadMode === "file" ? "bg-foreground text-background" : "border"}`}
+                  className={`px-4 py-2 rounded-lg ${uploadMode === "file" ? "bg-foreground text-background" : "border"}`}
                 >
-                  <Upload className="w-4 h-4" />
+                  <Upload className="w-4 h-4 inline mr-2" />
                   File
                 </button>
               </div>
@@ -202,8 +183,7 @@ export default function ResumePage() {
 
             <button
               onClick={handleUpload}
-              disabled={uploadMode === "url" ? !fileUrl : !selectedFile}
-              className="px-6 py-2 bg-foreground text-background rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="px-6 py-2 bg-foreground text-background rounded-lg hover:opacity-90 transition-opacity"
             >
               Upload Resume
             </button>
