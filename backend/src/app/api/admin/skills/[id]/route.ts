@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { db, skills } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth/jwt-verification";
 import { eq } from "drizzle-orm";
-import { validateNotEmpty, sanitizeText, validateUUID } from "@/lib/utils/validation";
+import {
+  validateNotEmpty,
+  sanitizeText,
+  validateUUID,
+} from "@/lib/utils/validation";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const authResult = requireAdmin(request);
   if (authResult instanceof NextResponse) {
@@ -21,7 +25,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, category, order } = body;
+    const { name, category, order, level } = body;
 
     // Check if skill exists
     const [existingSkill] = await db
@@ -35,13 +39,19 @@ export async function PUT(
     }
 
     // Build update object
-    const updateData: any = {};
+    const updateData: {
+      name?: { en: string; fr: string };
+      category?: string;
+      order?: number;
+      level?: number;
+      updatedAt?: Date;
+    } = {};
 
     if (name !== undefined) {
       if (typeof name !== "object" || !name.en || !name.fr) {
         return NextResponse.json(
           { error: "Name must be an object with 'en' and 'fr' properties" },
-          { status: 400 }
+          { status: 400 },
         );
       }
       updateData.name = {
@@ -54,7 +64,7 @@ export async function PUT(
       if (!validateNotEmpty(category)) {
         return NextResponse.json(
           { error: "Category cannot be empty" },
-          { status: 400 }
+          { status: 400 },
         );
       }
       updateData.category = sanitizeText(category);
@@ -62,6 +72,10 @@ export async function PUT(
 
     if (order !== undefined) {
       updateData.order = parseInt(order, 10);
+    }
+
+    if (level !== undefined) {
+      updateData.level = Math.min(100, Math.max(0, parseInt(level, 10)));
     }
 
     updateData.updatedAt = new Date();
@@ -77,14 +91,14 @@ export async function PUT(
     console.error("Error updating skill:", error);
     return NextResponse.json(
       { error: "Failed to update skill" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const authResult = requireAdmin(request);
   if (authResult instanceof NextResponse) {
@@ -116,7 +130,7 @@ export async function DELETE(
     console.error("Error deleting skill:", error);
     return NextResponse.json(
       { error: "Failed to delete skill" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

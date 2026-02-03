@@ -1,10 +1,34 @@
-import { pgTable, uuid, text, integer, boolean, date, timestamp, jsonb } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  uuid,
+  text,
+  integer,
+  boolean,
+  date,
+  timestamp,
+  jsonb,
+} from "drizzle-orm/pg-core";
+
+// About Table
+export const about = pgTable("about", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  welcomeText: jsonb("welcome_text")
+    .$type<{ en: string; fr: string }>()
+    .notNull(),
+  mainHeading: jsonb("main_heading")
+    .$type<{ en: string; fr: string }>()
+    .notNull(),
+  subtext: jsonb("subtext").$type<{ en: string; fr: string }>().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
 
 // Skills Table
 export const skills = pgTable("skills", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: jsonb("name").$type<{ en: string; fr: string }>().notNull(),
   category: text("category").notNull(),
+  level: integer("level").default(50),
   order: integer("order").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -14,8 +38,13 @@ export const skills = pgTable("skills", {
 export const projects = pgTable("projects", {
   id: uuid("id").defaultRandom().primaryKey(),
   title: jsonb("title").$type<{ en: string; fr: string }>().notNull(),
-  description: jsonb("description").$type<{ en: string; fr: string }>().notNull(),
-  fullDescription: jsonb("full_description").$type<{ en: string; fr: string }>(),
+  description: jsonb("description")
+    .$type<{ en: string; fr: string }>()
+    .notNull(),
+  fullDescription: jsonb("full_description").$type<{
+    en: string;
+    fr: string;
+  }>(),
   client: text("client"),
   projectUrl: text("project_url"),
   githubUrl: text("github_url"),
@@ -36,7 +65,9 @@ export const workExperience = pgTable("work_experience", {
   position: jsonb("position").$type<{ en: string; fr: string }>().notNull(),
   company: jsonb("company").$type<{ en: string; fr: string }>().notNull(),
   location: jsonb("location").$type<{ en: string; fr: string }>().notNull(),
-  description: jsonb("description").$type<{ en: string; fr: string }>().notNull(),
+  description: jsonb("description")
+    .$type<{ en: string; fr: string }>()
+    .notNull(),
   startDate: date("start_date").notNull(),
   endDate: date("end_date"),
   current: boolean("current").notNull().default(false),
@@ -49,7 +80,9 @@ export const workExperience = pgTable("work_experience", {
 export const education = pgTable("education", {
   id: uuid("id").defaultRandom().primaryKey(),
   degree: jsonb("degree").$type<{ en: string; fr: string }>().notNull(),
-  institution: jsonb("institution").$type<{ en: string; fr: string }>().notNull(),
+  institution: jsonb("institution")
+    .$type<{ en: string; fr: string }>()
+    .notNull(),
   location: jsonb("location").$type<{ en: string; fr: string }>().notNull(),
   description: jsonb("description").$type<{ en: string; fr: string }>(),
   startDate: date("start_date").notNull(),
@@ -79,7 +112,7 @@ export const testimonials = pgTable("testimonials", {
   position: text("position").notNull(),
   company: text("company"),
   email: text("email").notNull(),
-  message: text("message").notNull(),
+  message: jsonb("message").notNull(),
   rating: integer("rating").notNull(),
   status: text("status").notNull().default("pending"),
   submittedAt: timestamp("submitted_at").defaultNow().notNull(),
@@ -122,6 +155,9 @@ export const contactInfo = pgTable("contact_info", {
 });
 
 // Export types
+export type About = typeof about.$inferSelect;
+export type NewAbout = typeof about.$inferInsert;
+
 export type Skill = typeof skills.$inferSelect;
 export type NewSkill = typeof skills.$inferInsert;
 

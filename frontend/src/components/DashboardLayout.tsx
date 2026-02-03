@@ -1,26 +1,24 @@
-'use client';
+"use client";
 
-import { useState, ReactNode } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import Link from 'next/link';
-import { authClient } from '@/lib/auth/auth-client';
+import { ReactNode } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
+import { authClient } from "@/lib/auth/auth-client";
+import { motion } from "framer-motion";
 import {
-  LayoutDashboard,
+  User,
+  Code,
+  FolderOpen,
   Briefcase,
-  Zap,
-  Building2,
   GraduationCap,
-  Palette,
-  MessageSquare,
+  Heart,
   Mail,
-  Phone,
-  FileText,
-  ChevronLeft,
-  ChevronRight,
   LogOut,
-  ExternalLink,
-  User
-} from 'lucide-react';
+  Eye,
+  FileText,
+  MessageSquare,
+  MessageCircle,
+} from "lucide-react";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -28,118 +26,98 @@ interface DashboardLayoutProps {
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Projects', href: '/dashboard/projects', icon: Briefcase },
-  { name: 'Skills', href: '/dashboard/skills', icon: Zap },
-  { name: 'Experience', href: '/dashboard/experience', icon: Building2 },
-  { name: 'Education', href: '/dashboard/education', icon: GraduationCap },
-  { name: 'Hobbies', href: '/dashboard/hobbies', icon: Palette },
-  { name: 'Testimonials', href: '/dashboard/testimonials', icon: MessageSquare },
-  { name: 'Messages', href: '/dashboard/messages', icon: Mail },
-  { name: 'Contact Info', href: '/dashboard/contact-info', icon: Phone },
-  { name: 'Resume', href: '/dashboard/resume', icon: FileText },
+  { name: "Profile", href: "/dashboard", icon: User },
+  { name: "Skills", href: "/dashboard/skills", icon: Code },
+  { name: "Projects", href: "/dashboard/projects", icon: FolderOpen },
+  { name: "Experience", href: "/dashboard/experience", icon: Briefcase },
+  { name: "Education", href: "/dashboard/education", icon: GraduationCap },
+  { name: "Hobbies", href: "/dashboard/hobbies", icon: Heart },
+  { name: "Contact", href: "/dashboard/contact-info", icon: Mail },
+  {
+    name: "Testimonials",
+    href: "/dashboard/testimonials",
+    icon: MessageCircle,
+  },
+  { name: "Manage Resume", href: "/dashboard/resume", icon: FileText },
+  { name: "View Messages", href: "/dashboard/messages", icon: MessageSquare },
 ];
 
-export default function DashboardLayout({ children, user }: DashboardLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+export default function DashboardLayout({
+  children,
+  user,
+}: DashboardLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
 
   const handleLogout = async () => {
     await authClient.signOut();
-    router.push('/login');
+    router.push("/login");
   };
 
   return (
-    <div className="flex h-screen bg-black">
+    <div className="admin-theme flex h-screen bg-background overflow-hidden">
       {/* Sidebar */}
-      <div
-        className={`${
-          sidebarOpen ? 'w-64' : 'w-20'
-        } bg-black border-r border-gray-900 text-white transition-all duration-300 ease-in-out flex flex-col`}
+      <motion.aside
+        initial={{ x: -300 }}
+        animate={{ x: 0 }}
+        className="w-64 bg-card border-r border-border flex flex-col"
       >
         {/* Sidebar Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-900">
-          {sidebarOpen && <h1 className="text-xl font-bold text-white">Admin Panel</h1>}
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-lg hover:bg-gray-900 transition-colors text-gray-400 hover:text-white"
-          >
-            {sidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
-          </button>
+        <div className="p-6 border-b border-border">
+          <h1 className="font-display text-xl font-bold text-foreground">
+            Admin Panel
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Manage your portfolio
+          </p>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4">
-          <ul className="space-y-1 px-2">
-            {navigation.map((item) => {
-              const isActive = pathname === item.href;
-              const Icon = item.icon;
-              return (
-                <li key={item.name}>
-                  <Link
-                    href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
-                      isActive
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/20'
-                        : 'hover:bg-gray-900 text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    <Icon size={20} className="flex-shrink-0" />
-                    {sidebarOpen && <span className="text-sm font-medium">{item.name}</span>}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          {navigation.map((item) => {
+            const isActive = pathname === item.href;
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all font-medium ${
+                  isActive
+                    ? "bg-foreground/10 text-foreground"
+                    : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
+                }`}
+              >
+                <Icon className="w-5 h-5 flex-shrink-0" />
+                <span>{item.name}</span>
+              </Link>
+            );
+          })}
         </nav>
 
-        {/* User Info & Logout */}
-        <div className="border-t border-gray-900 p-4">
-          {sidebarOpen && user && (
-            <div className="mb-3 p-3 bg-gray-900 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <User size={16} className="text-gray-500" />
-                <p className="text-xs text-gray-500">Logged in as</p>
-              </div>
-              <p className="text-sm font-medium truncate text-white">{user.email}</p>
-              <p className="text-xs text-blue-400 capitalize mt-1">{user.role}</p>
-            </div>
-          )}
+        {/* Footer Actions */}
+        <div className="p-4 border-t border-border space-y-2">
+          <Link
+            href="/"
+            target="_blank"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground hover:bg-foreground/5 hover:text-foreground transition-all font-medium w-full"
+          >
+            <Eye className="w-5 h-5" />
+            <span>View Portfolio</span>
+          </Link>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-all text-red-400 hover:text-red-300"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-all font-medium w-full text-left"
           >
-            <LogOut size={18} />
-            {sidebarOpen && <span className="text-sm font-medium">Logout</span>}
+            <LogOut className="w-5 h-5" />
+            <span>Logout</span>
           </button>
         </div>
-      </div>
+      </motion.aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
-        <header className="bg-black border-b border-gray-900 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-semibold text-white">
-              {navigation.find((item) => item.href === pathname)?.name || 'Dashboard'}
-            </h2>
-            <div className="flex items-center gap-4">
-              <a
-                href="/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-400 hover:text-white font-medium transition-colors border border-gray-900 rounded-lg hover:border-gray-800 hover:bg-gray-900"
-              >
-                <ExternalLink size={16} />
-                View Portfolio
-              </a>
-            </div>
-          </div>
-        </header>
-
+      <div className="flex-1 flex flex-col overflow-hidden bg-background">
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-6 bg-black">{children}</main>
+        <main className="flex-1 overflow-y-auto p-8">{children}</main>
       </div>
     </div>
   );

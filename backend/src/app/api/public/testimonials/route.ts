@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching testimonials:", error);
     return NextResponse.json(
       { error: "Failed to fetch testimonials" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -39,37 +39,51 @@ export async function POST(request: NextRequest) {
 
     // Validation
     if (!validateNotEmpty(name)) {
-      return NextResponse.json(
-        { error: "Name is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
     if (!validateNotEmpty(position)) {
       return NextResponse.json(
         { error: "Position is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!validateEmail(email)) {
       return NextResponse.json(
         { error: "Valid email is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    if (!validateNotEmpty(message)) {
+    // Validate bilingual message
+    if (typeof message === "object" && message !== null) {
+      // Bilingual format
+      if (!validateNotEmpty(message.en) || !validateNotEmpty(message.fr)) {
+        return NextResponse.json(
+          { error: "Message is required in both English and French" },
+          { status: 400 },
+        );
+      }
+    } else if (typeof message === "string") {
+      // Legacy format - single language
+      if (!validateNotEmpty(message)) {
+        return NextResponse.json(
+          { error: "Message is required" },
+          { status: 400 },
+        );
+      }
+    } else {
       return NextResponse.json(
-        { error: "Message is required" },
-        { status: 400 }
+        { error: "Invalid message format" },
+        { status: 400 },
       );
     }
 
     if (!validateRating(rating)) {
       return NextResponse.json(
         { error: "Rating must be between 1 and 5" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -77,7 +91,21 @@ export async function POST(request: NextRequest) {
     const sanitizedName = sanitizeText(name);
     const sanitizedPosition = sanitizeText(position);
     const sanitizedCompany = company ? sanitizeText(company) : null;
-    const sanitizedMessage = sanitizeText(message);
+
+    // Sanitize message - support both bilingual and legacy formats
+    let sanitizedMessage: { en: string; fr: string };
+    if (typeof message === "object" && message !== null) {
+      sanitizedMessage = {
+        en: sanitizeText(message.en),
+        fr: sanitizeText(message.fr),
+      };
+    } else {
+      // Legacy single language - duplicate to both
+      sanitizedMessage = {
+        en: sanitizeText(message),
+        fr: sanitizeText(message),
+      };
+    }
 
     // Insert testimonial with pending status
     const [newTestimonial] = await db
@@ -95,14 +123,15 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Testimonial submitted successfully. It will be reviewed before publication.",
+      message:
+        "Testimonial submitted successfully. It will be reviewed before publication.",
       id: newTestimonial.id,
     });
   } catch (error) {
     console.error("Error creating testimonial:", error);
     return NextResponse.json(
       { error: "Failed to submit testimonial" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

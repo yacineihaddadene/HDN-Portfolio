@@ -15,7 +15,9 @@ function getDb() {
         throw new Error("DATABASE_URL environment variable is not set");
       }
       // For build time, use a dummy connection string
-      const dummyClient = postgres("postgres://dummy:dummy@localhost:5432/dummy");
+      const dummyClient = postgres(
+        "postgres://dummy:dummy@localhost:5432/dummy",
+      );
       _db = drizzle(dummyClient, { schema });
     } else {
       const client = postgres(connectionString);
@@ -35,6 +37,7 @@ export const db = new Proxy({} as ReturnType<typeof drizzle>, {
 // Export schema and all tables for use in other files
 export { schema };
 export {
+  about,
   skills,
   projects,
   workExperience,

@@ -45,7 +45,11 @@ export default function MessagesPage() {
 
   const handleStatusChange = async (id: string, status: string) => {
     try {
-      await apiClient.updateMessageStatus(id, status);
+      if (status === 'read') {
+        await apiClient.markMessageAsRead(id);
+      } else {
+        await apiClient.markMessageAsUnread(id);
+      }
       await loadMessages(filter);
       if (selectedMessage?.id === id) {
         setSelectedMessage({ ...selectedMessage, status });
