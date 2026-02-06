@@ -4,7 +4,6 @@ import { ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "@/lib/auth/auth-client";
-import { motion } from "framer-motion";
 import {
   User,
   Code,
@@ -57,11 +56,7 @@ export default function DashboardLayout({
   return (
     <div className="admin-theme flex h-screen bg-background overflow-hidden">
       {/* Sidebar */}
-      <motion.aside
-        initial={{ x: -300 }}
-        animate={{ x: 0 }}
-        className="w-64 bg-card border-r border-border flex flex-col"
-      >
+      <aside className="w-64 bg-card border-r border-border flex flex-col">
         {/* Sidebar Header */}
         <div className="p-6 border-b border-border">
           <h1 className="font-display text-xl font-bold text-foreground">
@@ -112,7 +107,7 @@ export default function DashboardLayout({
             <span>Logout</span>
           </button>
         </div>
-      </motion.aside>
+      </aside>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden bg-background">

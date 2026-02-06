@@ -27,6 +27,8 @@ import {
   Download,
   FileText,
   Sparkles,
+  Menu,
+  X,
 } from "lucide-react";
 import { SkillIcon } from "@/lib/skillIcons";
 
@@ -35,6 +37,7 @@ export default function Home() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [activeSection, setActiveSection] = useState("");
   const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [data, setData] = useState({
     projects: [] as Project[],
     skills: [] as Skill[],
@@ -255,15 +258,16 @@ export default function Home() {
             <motion.h1
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="text-xl font-bold font-display cursor-pointer hover:scale-105 transition-transform duration-200"
+              className="text-lg md:text-xl font-bold font-display cursor-pointer hover:scale-105 transition-transform duration-200"
             >
-              <span className="gradient-text">Portfolio</span>
-              <span className="text-accent">.</span>
+              <span className="gradient-text">HDN Portfolio</span>
             </motion.h1>
-            <div className="flex items-center gap-4 md:gap-6">
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-3 lg:gap-6">
               <a
                 href="#skills"
-                className={`relative transition-all duration-300 group py-1 text-sm ${
+                className={`relative transition-all duration-300 group py-1 text-xs md:text-sm ${
                   activeSection === "skills"
                     ? "text-accent font-medium"
                     : "text-muted-foreground hover:text-foreground"
@@ -282,7 +286,7 @@ export default function Home() {
               </a>
               <a
                 href="#projects"
-                className={`relative transition-all duration-300 group py-1 text-sm ${
+                className={`relative transition-all duration-300 group py-1 text-xs md:text-sm ${
                   activeSection === "projects"
                     ? "text-accent font-medium"
                     : "text-muted-foreground hover:text-foreground"
@@ -301,7 +305,7 @@ export default function Home() {
               </a>
               <a
                 href="#experience"
-                className={`relative transition-all duration-300 group py-1 text-sm hidden sm:block ${
+                className={`relative transition-all duration-300 group py-1 text-xs md:text-sm ${
                   activeSection === "experience"
                     ? "text-accent font-medium"
                     : "text-muted-foreground hover:text-foreground"
@@ -320,7 +324,7 @@ export default function Home() {
               </a>
               <a
                 href="#education"
-                className={`relative transition-all duration-300 group py-1 text-sm hidden md:block ${
+                className={`relative transition-all duration-300 group py-1 text-xs md:text-sm ${
                   activeSection === "education"
                     ? "text-accent font-medium"
                     : "text-muted-foreground hover:text-foreground"
@@ -339,7 +343,7 @@ export default function Home() {
               </a>
               <a
                 href="#hobbies"
-                className={`relative transition-all duration-300 group py-1 text-sm hidden lg:block ${
+                className={`relative transition-all duration-300 group py-1 text-xs md:text-sm ${
                   activeSection === "hobbies"
                     ? "text-accent font-medium"
                     : "text-muted-foreground hover:text-foreground"
@@ -356,7 +360,7 @@ export default function Home() {
               </a>
               <a
                 href="#testimonials"
-                className={`relative transition-all duration-300 group py-1 text-sm hidden lg:block ${
+                className={`relative transition-all duration-300 group py-1 text-xs md:text-sm ${
                   activeSection === "testimonials"
                     ? "text-accent font-medium"
                     : "text-muted-foreground hover:text-foreground"
@@ -373,7 +377,7 @@ export default function Home() {
               </a>
               <a
                 href="#resume"
-                className={`relative transition-all duration-300 group py-1 text-sm hidden lg:block ${
+                className={`relative transition-all duration-300 group py-1 text-sm ${
                   activeSection === "resume"
                     ? "text-accent font-medium"
                     : "text-muted-foreground hover:text-foreground"
@@ -420,7 +424,100 @@ export default function Home() {
                 {t("Login", "Connexion")}
               </Link>
             </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden flex items-center gap-2">
+              <button
+                onClick={() => setLang(lang === "en" ? "fr" : "en")}
+                className="px-2 py-1 rounded-md bg-muted text-foreground text-xs font-medium hover:bg-accent hover:text-background transition-all"
+              >
+                {lang === "en" ? "FR" : "EN"}
+              </button>
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-2 hover:bg-muted rounded-lg transition-colors"
+              >
+                {mobileMenuOpen ? (
+                  <X className="w-5 h-5" />
+                ) : (
+                  <Menu className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </div>
+
+          {/* Mobile Menu */}
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="md:hidden border-t border-border py-3 space-y-2"
+            >
+              <a
+                href="#skills"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-2 rounded hover:bg-muted transition-colors text-sm"
+              >
+                {t("Skills", "Compétences")}
+              </a>
+              <a
+                href="#projects"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-2 rounded hover:bg-muted transition-colors text-sm"
+              >
+                {t("Projects", "Projets")}
+              </a>
+              <a
+                href="#experience"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-2 rounded hover:bg-muted transition-colors text-sm"
+              >
+                {t("Experience", "Expérience")}
+              </a>
+              <a
+                href="#education"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-2 rounded hover:bg-muted transition-colors text-sm"
+              >
+                {t("Education", "Formation")}
+              </a>
+              <a
+                href="#hobbies"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-2 rounded hover:bg-muted transition-colors text-sm"
+              >
+                {t("Hobbies", "Loisirs")}
+              </a>
+              <a
+                href="#testimonials"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-2 rounded hover:bg-muted transition-colors text-sm"
+              >
+                {t("Testimonials", "Témoignages")}
+              </a>
+              <a
+                href="#resume"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-2 rounded hover:bg-muted transition-colors text-sm"
+              >
+                {t("Resume", "CV")}
+              </a>
+              <a
+                href="#contact"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-2 rounded hover:bg-muted transition-colors text-sm"
+              >
+                {t("Contact", "Contact")}
+              </a>
+              <Link
+                href="/login"
+                className="block px-4 py-2 bg-foreground text-background rounded hover:bg-foreground/90 transition-all text-xs font-semibold text-center mt-2"
+              >
+                {t("Login", "Connexion")}
+              </Link>
+            </motion.div>
+          )}
         </div>
       </nav>
 
@@ -846,12 +943,12 @@ export default function Home() {
 
       {/* Submit Testimonial Section */}
       <section
-        id="submit-testimonial"
+        id="testimonials"
         className="py-20 px-4 sm:px-6 lg:px-8 bg-black"
       >
         <div className="max-w-3xl mx-auto">
           <h3 className="text-4xl font-bold text-center text-white mb-4 gradient-text">
-            {t("Share Your Experience", "Partagez votre expérience")}
+            {t("Testimonials", "Témoignages")}
           </h3>
           <p className="text-center text-gray-400 mb-12">
             {t(

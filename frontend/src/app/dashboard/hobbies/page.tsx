@@ -8,7 +8,7 @@ import ConfirmModal from "@/components/ConfirmModal";
 import Toast from "@/components/Toast";
 import { useConfirmModal, useToast } from "@/hooks/useModals";
 import { apiClient, Hobby } from "@/lib/api/client";
-import { ArrowLeft, Trash2, Edit } from "lucide-react";
+import { ArrowLeft, Trash2, Edit, Upload, X } from "lucide-react";
 
 export default function HobbiesPage() {
   const [user, setUser] = useState<any>(null);
@@ -16,6 +16,9 @@ export default function HobbiesPage() {
   const [hobbies, setHobbies] = useState<Hobby[]>([]);
   const [editingHobby, setEditingHobby] = useState<Hobby | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [uploadMode, setUploadMode] = useState<"url" | "file">("url");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   const { confirmModal, showConfirm, hideConfirm } = useConfirmModal();
   const { toast, showToast, hideToast } = useToast();
   const router = useRouter();
@@ -25,6 +28,7 @@ export default function HobbiesPage() {
     hobbyNameFr: "",
     descriptionEn: "",
     descriptionFr: "",
+    imageUrl: "",
   });
 
   useEffect(() => {
@@ -50,6 +54,46 @@ export default function HobbiesPage() {
     }
   };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type (images only)
+    if (!file.type.startsWith('image/')) {
+      showToast("Please select an image file", "error");
+      return;
+    }
+
+    // Validate file size (5MB max)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      showToast("Image size must be less than 5MB", "error");
+      return;
+    }
+
+    setSelectedFile(file);
+  };
+
+  const handleUploadFile = async () => {
+    if (!selectedFile) return;
+
+    setUploading(true);
+    try {
+      showToast("Uploading image...", "info");
+      const uploadResult = await apiClient.uploadHobbyImage(selectedFile);
+      console.log("Upload result:", uploadResult);
+      setFormData({ ...formData, imageUrl: uploadResult.fileUrl });
+      showToast("Image uploaded successfully", "success");
+      setSelectedFile(null);
+      setUploadMode("url");
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      showToast(`Failed to upload: ${error.message}`, "error");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleAddOrUpdateHobby = async () => {
     try {
       const data: any = {
@@ -57,6 +101,8 @@ export default function HobbiesPage() {
         description: { en: formData.descriptionEn, fr: formData.descriptionFr },
         order: hobbies.length,
       };
+
+      if (formData.imageUrl) data.imageUrl = formData.imageUrl;
 
       if (editingHobby) {
         await apiClient.updateHobby(editingHobby.id, data);
@@ -72,8 +118,10 @@ export default function HobbiesPage() {
         hobbyNameFr: "",
         descriptionEn: "",
         descriptionFr: "",
+        imageUrl: "",
       });
       setEditingHobby(null);
+      setSelectedFile(null);
     } catch (error: any) {
       showToast(`Failed to save hobby: ${error.message}`, "error");
     }
@@ -86,6 +134,7 @@ export default function HobbiesPage() {
       hobbyNameFr: hobby.title.fr,
       descriptionEn: hobby.description?.en || "",
       descriptionFr: hobby.description?.fr || "",
+      imageUrl: hobby.imageUrl || "",
     });
   };
 
@@ -96,6 +145,7 @@ export default function HobbiesPage() {
       hobbyNameFr: "",
       descriptionEn: "",
       descriptionFr: "",
+      imageUrl: "",
     });
   };
 
@@ -212,6 +262,118 @@ export default function HobbiesPage() {
             </div>
           </div>
 
+          {/* Image Upload Section */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Hobby Image
+            </label>
+            
+            {/* Upload Mode Toggle */}
+            <div className="flex gap-2 mb-3">
+              <button
+                type="button"
+                onClick={() => setUploadMode('url')}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  uploadMode === 'url'
+                    ? 'bg-foreground text-background'
+                    : 'bg-background border hover:bg-muted'
+                }`}
+              >
+                URL
+              </button>
+              <button
+                type="button"
+                onClick={() => setUploadMode('file')}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  uploadMode === 'file'
+                    ? 'bg-foreground text-background'
+                    : 'bg-background border hover:bg-muted'
+                }`}
+              >
+                Upload File
+              </button>
+            </div>
+
+            {/* URL Input */}
+            {uploadMode === 'url' && (
+              <input
+                type="text"
+                placeholder="https://example.com/image.jpg"
+                value={formData.imageUrl}
+                onChange={(e) =>
+                  setFormData({ ...formData, imageUrl: e.target.value })
+                }
+                className="w-full px-3 py-2 bg-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-foreground/20"
+              />
+            )}
+
+            {/* File Upload */}
+            {uploadMode === 'file' && (
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <label className="flex-1 cursor-pointer">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-background border rounded-lg hover:bg-muted transition-colors">
+                      <Upload className="w-4 h-4" />
+                      <span className="text-sm">
+                        {selectedFile ? selectedFile.name : 'Choose image...'}
+                      </span>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                  </label>
+                  {selectedFile && (
+                    <button
+                      type="button"
+                      onClick={handleUploadFile}
+                      disabled={uploading}
+                      className="px-4 py-2 bg-foreground text-background rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                    >
+                      {uploading ? 'Uploading...' : 'Upload'}
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Max file size: 5MB. Supported formats: JPEG, PNG, GIF, WebP
+                </p>
+              </div>
+            )}
+
+            {/* Image Preview */}
+            {formData.imageUrl && (
+              <div className="mt-4 p-4 bg-muted rounded-lg border-2 border-dashed">
+                <div className="flex items-start justify-between mb-2">
+                  <span className="text-sm font-medium">Current Image:</span>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, imageUrl: '' })}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="relative h-64 bg-background rounded-lg overflow-hidden border">
+                  <img
+                    src={formData.imageUrl}
+                    alt="Hobby preview"
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      console.error('Image failed to load:', formData.imageUrl);
+                      e.currentTarget.src = '';
+                      e.currentTarget.alt = 'Failed to load image';
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-2 break-all">
+                  {formData.imageUrl}
+                </p>
+              </div>
+            )}
+          </div>
+
           <div className="flex gap-2">
             <button
               onClick={handleAddOrUpdateHobby}
@@ -240,6 +402,16 @@ export default function HobbiesPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {hobbies.map((hobby) => (
             <div key={hobby.id} className="border rounded-lg p-6">
+              {/* Image Preview */}
+              {hobby.imageUrl && (
+                <div className="mb-4 rounded-lg overflow-hidden bg-muted border h-48">
+                  <img
+                    src={hobby.imageUrl}
+                    alt={hobby.title.en}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
               <div className="flex justify-between items-start mb-2">
                 <h3 className="text-lg font-semibold">{hobby.title.en}</h3>
                 <div className="flex items-center gap-1">

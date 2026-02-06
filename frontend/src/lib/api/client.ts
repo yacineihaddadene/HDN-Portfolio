@@ -436,6 +436,39 @@ export class ApiClient {
     });
   }
 
+  async uploadHobbyImage(
+    file: File,
+  ): Promise<{ filename: string; fileUrl: string }> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    // Get auth token for admin endpoint
+    const token = await this.getAuthToken();
+
+    const headers: Record<string, string> = {};
+
+    // Add Authorization header if token exists
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${this.baseUrl}/api/admin/hobbies/upload`, {
+      method: "POST",
+      body: formData,
+      credentials: "include",
+      headers: headers,
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ error: "Upload failed" }));
+      throw new Error(error.error || "Upload failed");
+    }
+
+    return response.json();
+  }
+
   // ============ TESTIMONIALS ============
   async getTestimonials(status?: string) {
     const query = status ? `?status=${status}` : "";

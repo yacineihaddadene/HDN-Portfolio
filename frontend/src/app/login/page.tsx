@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { authClient } from "@/lib/auth/auth-client";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { LoginErrorBoundary } from "./error-boundary";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -95,6 +96,10 @@ export default function LoginPage() {
           </motion.div>
         )}
 
+        <Suspense fallback={<div className="mb-6 h-12 bg-muted rounded-lg animate-pulse" />}>
+          <LoginErrorBoundary />
+        </Suspense>
+
         <motion.form
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -163,35 +168,8 @@ export default function LoginPage() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="mt-6"
-        >
-          <div className="p-4 bg-muted/50 rounded-lg border border-border">
-            <p className="text-sm font-semibold text-foreground text-center mb-2">
-              Test Credentials
-            </p>
-            <div className="space-y-1 text-sm text-muted-foreground text-center">
-              <p className="font-mono">
-                Email:{" "}
-                <code className="bg-card px-2 py-1 rounded text-foreground">
-                  admin@test.com
-                </code>
-              </p>
-              <p className="font-mono">
-                Password:{" "}
-                <code className="bg-card px-2 py-1 rounded text-foreground">
-                  password123
-                </code>
-              </p>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="text-center"
+          className="mt-8 text-center"
         >
           <Link
             href="/"
