@@ -1,9 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, contactMessages } from "@/lib/db";
 import { validateEmail, sanitizeText, validateNotEmpty } from "@/lib/utils/validation";
+import { checkRateLimit, getClientIP, getRateLimitErrorResponse } from "@/lib/utils/rate-limiter";
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting: 5 messages per 20 minutes per IP
+    const clientIP = getClientIP(request);
+    const rateLimit = checkRateLimit(clientIP, 5, 20 * 60 * 1000);
+
+    if (rateLimit.isLimited) {
+      const errorResponse = getRateLimitErrorResponse(rateLimit.retryAfter!);
+      return NextResponse.json(
+        {
+          error: errorResponse.error,
+          message: errorResponse.message,
+        },
+        { status: 429, headers: { "Retry-After": errorResponse.retryAfter.toString() } }
+      );
+    }
+
     const body = await request.json();
     const { name, email, subject, message } = body;
 

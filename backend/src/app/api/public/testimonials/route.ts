@@ -9,6 +9,7 @@ import {
   validateNotEmpty,
   validateRating,
 } from "@/lib/utils/validation";
+import { checkRateLimit, getClientIP, getRateLimitErrorResponse } from "@/lib/utils/rate-limiter";
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,6 +35,21 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting: 5 testimonials per 20 minutes per IP
+    const clientIP = getClientIP(request);
+    const rateLimit = checkRateLimit(clientIP, 5, 20 * 60 * 1000);
+
+    if (rateLimit.isLimited) {
+      const errorResponse = getRateLimitErrorResponse(rateLimit.retryAfter!);
+      return NextResponse.json(
+        {
+          error: errorResponse.error,
+          message: errorResponse.message,
+        },
+        { status: 429, headers: { "Retry-After": errorResponse.retryAfter.toString() } }
+      );
+    }
+
     const body = await request.json();
     const { name, position, company, email, message, rating } = body;
 

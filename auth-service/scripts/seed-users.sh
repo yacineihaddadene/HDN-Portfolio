@@ -8,7 +8,7 @@
 # Check if running in production environment
 if [ "${NODE_ENV}" = "production" ] || [ "${SPRING_PROFILES_ACTIVE}" = "prod" ] || [ "${SPRING_PROFILES_ACTIVE}" = "production" ]; then
   echo "❌ ERROR: User seeding is DISABLED in production for security reasons."
-  echo "   This script creates accounts with known passwords (admin@test.com / password123)."
+  echo "   This script creates accounts with known passwords (Yacine@hdn.com / 2005Hdn.)."
   echo "   To create admin accounts in production:"
   echo "   1. Sign up normally at your production site"
   echo "   2. Connect to the auth database"
@@ -161,15 +161,14 @@ create_user() {
 }
 
 # Create test users
-create_user "admin@test.com" "password123" "Admin User" "ADMIN"
-create_user "customer@test.com" "password123" "Customer User" "CUSTOMER"
+create_user "Yacine@hdn.com" "2005Hdn." "Yacine HDN" "ADMIN"
 
 echo ""
 echo "✅ User seeding complete!"
 echo ""
-echo "📝 Test User Credentials:"
-echo "   Admin:    admin@test.com / password123 (ADMIN role)"
-echo "   Customer: customer@test.com / password123 (CUSTOMER role)"
+echo "📝 Admin User Credentials:"
+echo "   Email: Yacine@hdn.com"
+echo "   Password: 2005Hdn."
 echo ""
-echo "✅ All users created with correct roles!"
+echo "✅ Admin user created with correct role!"
 

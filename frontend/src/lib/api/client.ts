@@ -219,7 +219,12 @@ export class ApiClient {
     if (!response.ok) {
       const error = await response
         .json()
-        .catch(() => ({ error: "Request failed" }));
+        .catch(() => ({ error: "Request failed", message: "Request failed" }));
+
+      // If it's a rate limit error, pass through the message
+      if (response.status === 429) {
+        throw new Error(error.message || error.error || "Too many submissions. Please try again later.");
+      }
 
       // If unauthorized, clear cached token and retry once
       if (response.status === 401 && this.cachedToken) {

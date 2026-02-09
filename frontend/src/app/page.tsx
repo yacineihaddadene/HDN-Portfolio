@@ -1518,10 +1518,12 @@ function TestimonialForm({
   const [status, setStatus] = useState<
     "idle" | "sending" | "success" | "error"
   >("idle");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("sending");
+    setErrorMessage("");
     try {
       await apiClient.submitTestimonial({
         name: formData.name,
@@ -1543,7 +1545,29 @@ function TestimonialForm({
       setTimeout(() => setStatus("idle"), 5000);
     } catch (error) {
       setStatus("error");
-      setTimeout(() => setStatus("idle"), 3000);
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      // Check if it's a rate limit error
+      if (
+        errorMsg.includes("429") ||
+        errorMsg.includes("rate limit") ||
+        errorMsg.includes("Too many submissions") ||
+        errorMsg.includes("Too many")
+      ) {
+        setErrorMessage(
+          t(
+            "Too many testimonials submitted. Please try again in a few minutes.",
+            "Trop de témoignages soumis. Veuillez réessayer dans quelques minutes."
+          )
+        );
+      } else {
+        setErrorMessage(
+          t(
+            "Failed to submit testimonial. Please try again.",
+            "Impossible de soumettre le témoignage. Veuillez réessayer."
+          )
+        );
+      }
+      setTimeout(() => setStatus("idle"), 5000);
     }
   };
 
@@ -1584,6 +1608,31 @@ function TestimonialForm({
         </motion.div>
       )}
 
+      {status === "error" && errorMessage && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl"
+        >
+          <p className="text-red-400 text-center font-medium flex items-center justify-center gap-2">
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            {errorMessage}
+          </p>
+        </motion.div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
           <label className="block text-sm font-medium text-foreground/80 mb-2">
@@ -1595,7 +1644,7 @@ function TestimonialForm({
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="w-full px-4 py-3 bg-background/50 border border-border rounded-xl focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all text-foreground placeholder-muted-foreground"
-            placeholder={t("John Doe", "Jean Dupont")}
+            placeholder=""
           />
         </div>
         <div>
@@ -1610,7 +1659,7 @@ function TestimonialForm({
               setFormData({ ...formData, email: e.target.value })
             }
             className="w-full px-4 py-3 bg-background/50 border border-border rounded-xl focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all text-foreground placeholder-muted-foreground"
-            placeholder="john@example.com"
+            placeholder=""
           />
         </div>
       </div>
@@ -1628,7 +1677,7 @@ function TestimonialForm({
               setFormData({ ...formData, position: e.target.value })
             }
             className="w-full px-4 py-3 bg-background/50 border border-border rounded-xl focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all text-foreground placeholder-muted-foreground"
-            placeholder={t("Software Engineer", "Ingénieur logiciel")}
+            placeholder=""
           />
         </div>
         <div>
@@ -1642,7 +1691,7 @@ function TestimonialForm({
               setFormData({ ...formData, company: e.target.value })
             }
             className="w-full px-4 py-3 bg-background/50 border border-border rounded-xl focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all text-foreground placeholder-muted-foreground"
-            placeholder={t("Tech Corp", "Tech Corp")}
+            placeholder=""
           />
         </div>
       </div>
@@ -1693,10 +1742,7 @@ function TestimonialForm({
             setFormData({ ...formData, message: e.target.value })
           }
           className="w-full px-4 py-3 bg-background/50 border border-border rounded-xl focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all text-foreground placeholder-muted-foreground resize-none"
-          placeholder={t(
-            "Share your experience working with me...",
-            "Partagez votre expérience de travail avec moi..."
-          )}
+          placeholder=""
         />
       </div>
 
@@ -1747,10 +1793,12 @@ function ContactForm({
   const [status, setStatus] = useState<
     "idle" | "sending" | "success" | "error"
   >("idle");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("sending");
+    setErrorMessage("");
     try {
       await apiClient.sendMessage(formData);
       setStatus("success");
@@ -1758,7 +1806,29 @@ function ContactForm({
       setTimeout(() => setStatus("idle"), 5000);
     } catch (error) {
       setStatus("error");
-      setTimeout(() => setStatus("idle"), 3000);
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      // Check if it's a rate limit error
+      if (
+        errorMsg.includes("429") ||
+        errorMsg.includes("rate limit") ||
+        errorMsg.includes("Too many submissions") ||
+        errorMsg.includes("Too many")
+      ) {
+        setErrorMessage(
+          t(
+            "Too many messages sent. Please try again in a few minutes.",
+            "Trop de messages envoyés. Veuillez réessayer dans quelques minutes."
+          )
+        );
+      } else {
+        setErrorMessage(
+          t(
+            "Failed to send message. Please try again.",
+            "Impossible d'envoyer le message. Veuillez réessayer."
+          )
+        );
+      }
+      setTimeout(() => setStatus("idle"), 5000);
     }
   };
 
@@ -1795,6 +1865,31 @@ function ContactForm({
               "Thank you! Your message has been sent successfully. I'll get back to you soon!",
               "Merci ! Votre message a été envoyé avec succès. Je vous répondrai bientôt !",
             )}
+          </p>
+        </motion.div>
+      )}
+
+      {status === "error" && errorMessage && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl"
+        >
+          <p className="text-red-400 text-center font-medium flex items-center justify-center gap-2">
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            {errorMessage}
           </p>
         </motion.div>
       )}
