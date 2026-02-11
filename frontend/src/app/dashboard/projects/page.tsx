@@ -8,7 +8,7 @@ import ConfirmModal from "@/components/ConfirmModal";
 import Toast from "@/components/Toast";
 import { useConfirmModal, useToast } from "@/hooks/useModals";
 import { apiClient, Project } from "@/lib/api/client";
-import { ArrowLeft, Trash2, Edit, Upload, X } from "lucide-react";
+import { ArrowLeft, Trash2, Edit, Upload, X, Github, ExternalLink } from "lucide-react";
 
 export default function ProjectsPage() {
   const [user, setUser] = useState<any>(null);
@@ -30,6 +30,7 @@ export default function ProjectsPage() {
     descriptionEn: "",
     descriptionFr: "",
     imageUrl: "",
+    githubUrl: "",
     category: "",
     year: "",
     technologies: [] as string[],
@@ -110,6 +111,7 @@ export default function ProjectsPage() {
       };
 
       if (formData.imageUrl) data.imageUrl = formData.imageUrl;
+      if (formData.githubUrl) data.githubUrl = formData.githubUrl;
       if (formData.year) data.startDate = formData.year;
       if (formData.technologies.length > 0)
         data.technologies = formData.technologies;
@@ -131,6 +133,7 @@ export default function ProjectsPage() {
         descriptionEn: "",
         descriptionFr: "",
         imageUrl: "",
+        githubUrl: "",
         category: "",
         year: "",
         technologies: [],
@@ -151,6 +154,7 @@ export default function ProjectsPage() {
       descriptionEn: project.description.en,
       descriptionFr: project.description.fr,
       imageUrl: project.imageUrl || "",
+      githubUrl: project.githubUrl || "",
       category: "",
       year: project.startDate || "",
       technologies: project.technologies || [],
@@ -168,6 +172,7 @@ export default function ProjectsPage() {
       descriptionEn: "",
       descriptionFr: "",
       imageUrl: "",
+      githubUrl: "",
       category: "",
       year: "",
       technologies: [],
@@ -424,6 +429,25 @@ export default function ProjectsPage() {
             />
           </div>
 
+          {/* GitHub URL */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              GitHub Repository URL
+            </label>
+            <input
+              type="url"
+              placeholder="https://github.com/username/repository"
+              value={formData.githubUrl}
+              onChange={(e) =>
+                setFormData({ ...formData, githubUrl: e.target.value })
+              }
+              className="w-full px-3 py-2 bg-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-foreground/20"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Add a GitHub link to display a GitHub icon on your project card
+            </p>
+          </div>
+
           {/* Technologies */}          <input
             type="text"
             placeholder="Add technology (press Enter)"
@@ -545,7 +569,7 @@ export default function ProjectsPage() {
                   {project.description.en}
                 </p>
                 {project.technologies && project.technologies.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 mb-3">
                     {project.technologies.slice(0, 3).map((tech, i) => (
                       <span
                         key={i}
@@ -558,6 +582,35 @@ export default function ProjectsPage() {
                       <span className="px-2 py-1 bg-muted rounded text-xs">
                         +{project.technologies.length - 3}
                       </span>
+                    )}
+                  </div>
+                )}
+                {/* Project Links */}
+                {(project.projectUrl || project.githubUrl) && (
+                  <div className="flex gap-3 pt-2 border-t">
+                    {project.projectUrl && (
+                      <a
+                        href={project.projectUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-foreground hover:text-accent text-sm transition-colors"
+                        title="View Project"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        <span>View</span>
+                      </a>
+                    )}
+                    {project.githubUrl && (
+                      <a
+                        href={project.githubUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-foreground hover:text-accent text-sm transition-colors"
+                        title="View on GitHub"
+                      >
+                        <Github className="w-4 h-4" />
+                        <span>Code</span>
+                      </a>
                     )}
                   </div>
                 )}
