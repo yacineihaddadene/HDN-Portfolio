@@ -38,13 +38,11 @@ RUN npm ci --only=production && \
 COPY --from=build /app/.next ./.next
 COPY --from=build /app/next.config.js ./next.config.js
 COPY --from=build /app/drizzle.config.ts ./drizzle.config.ts
+COPY --from=build /app/tsconfig.json ./tsconfig.json
 COPY --from=build /app/src/lib/db ./src/lib/db
 
 # Expose port
 EXPOSE 3001
-
-# Install postgresql-client for psql
-RUN apk add --no-cache postgresql-client
 
 # Copy scripts directory (contains setup-db.sh and init-schema.sql)
 COPY scripts ./scripts

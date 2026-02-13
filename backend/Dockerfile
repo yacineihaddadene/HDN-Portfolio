@@ -21,9 +21,6 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
-# Install PostgreSQL client for pg_isready command
-RUN apk add --no-cache postgresql-client
-
 # Create a non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001
