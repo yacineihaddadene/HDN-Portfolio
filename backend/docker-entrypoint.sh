@@ -2,18 +2,33 @@
 set -e
 
 echo "Waiting for database to be ready..."
-# Wait for PostgreSQL to be ready (max 60 seconds)
-TIMEOUT=60
-ELAPSED=0
-until pg_isready -h app-db -U app_user -d portfolio_app 2>/dev/null || [ $ELAPSED -ge $TIMEOUT ]; do
-  echo "Database is unavailable - sleeping (${ELAPSED}s/${TIMEOUT}s)"
-  sleep 2
-  ELAPSED=$((ELAPSED + 2))
-done
 
-if [ $ELAPSED -ge $TIMEOUT ]; then
-  echo "ERROR: Database did not become ready within ${TIMEOUT} seconds"
-  exit 1
+# Extract database connection details from DATABASE_URL
+# DATABASE_URL format: postgresql://user:pass@host:port/dbname?sslmode=require
+if [ -n "$DATABASE_URL" ]; then
+  # Extract host, port, user, and dbname from DATABASE_URL
+  DB_HOST=$(echo $DATABASE_URL | sed -n 's/.*@\([^:]*\):.*/\1/p')
+  DB_PORT=$(echo $DATABASE_URL | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
+  DB_USER=$(echo $DATABASE_URL | sed -n 's/.*\/\/\([^:]*\):.*/\1/p')
+  DB_NAME=$(echo $DATABASE_URL | sed -n 's/.*\/\([^?]*\).*/\1/p')
+  
+  echo "Connecting to database at $DB_HOST:$DB_PORT as $DB_USER"
+  
+  # Wait for PostgreSQL to be ready (max 60 seconds)
+  TIMEOUT=60
+  ELAPSED=0
+  until pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" 2>/dev/null || [ $ELAPSED -ge $TIMEOUT ]; do
+    echo "Database is unavailable - sleeping (${ELAPSED}s/${TIMEOUT}s)"
+    sleep 2
+    ELAPSED=$((ELAPSED + 2))
+  done
+  
+  if [ $ELAPSED -ge $TIMEOUT ]; then
+    echo "ERROR: Database did not become ready within ${TIMEOUT} seconds"
+    exit 1
+  fi
+else
+  echo "WARNING: DATABASE_URL not set, skipping database readiness check"
 fi
 
 echo "Database is ready!"
