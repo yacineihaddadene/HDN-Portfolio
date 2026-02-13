@@ -30,8 +30,9 @@ RUN addgroup -g 1001 -S nodejs && \
 # Copy package files
 COPY package.json package-lock.json* ./
 
-# Install production dependencies only
-RUN npm ci --only=production
+# Install production dependencies + drizzle-kit (needed for db:push in production)
+RUN npm ci --only=production && \
+    npm install drizzle-kit@0.31.4
 
 # Copy built application
 COPY --from=build /app/.next ./.next
@@ -51,17 +52,20 @@ COPY scripts ./scripts
 # Convert line endings from CRLF to LF (Windows to Unix) - CRITICAL for sh scripts!
 RUN sed -i 's/\r$//' ./scripts/setup-db.sh && \
     sed -i 's/\r$//' ./scripts/seed-users.sh && \
-    sed -i 's/\r$//' ./scripts/start.sh
+    sed -i 's/\r$//' ./scripts/start.sh && \
+    sed -i 's/\r$//' ./scripts/start-production.sh
 
 # Make scripts executable and change ownership to non-root user
 RUN chmod +x ./scripts/setup-db.sh && \
     chmod +x ./scripts/seed-users.sh && \
     chmod +x ./scripts/start.sh && \
+    chmod +x ./scripts/start-production.sh && \
     chown -R nextjs:nodejs /app
 
 # Switch to non-root user
 USER nextjs
 
-# Start the application with DB initialization and user seeding
-CMD ["./scripts/start.sh"]
+# Start the application with production startup script for DO App Platform
+# For local development, use: docker compose up (which uses start.sh)
+CMD ["./scripts/start-production.sh"]
 
