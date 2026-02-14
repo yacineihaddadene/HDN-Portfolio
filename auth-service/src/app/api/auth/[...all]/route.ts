@@ -425,26 +425,8 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        if (user && !user.emailVerified) {
-          const clientInfo = getClientInfo(request);
-          await recordLoginAttempt(email, false, clientInfo.ipAddress, clientInfo.userAgent);
-          
-          await logAuthEvent(
-            "login",
-            user.id,
-            false,
-            request,
-            {
-              email,
-              reason: "email_not_verified",
-            }
-          );
-          
-          return NextResponse.json(
-            { error: { message: "Please verify your email address before logging in. Check your inbox for the verification link." } },
-            { status: 403 } // 403 Forbidden
-          );
-        }
+        // Email verification check removed - email verification is disabled
+        // If re-enabled, uncomment the emailVerified check
       }
       
       const newRequest = new NextRequest(request.url, {
@@ -487,33 +469,8 @@ export async function POST(request: NextRequest) {
             );
           }
           
-          if (user && !user.emailVerified) {
-            const clientInfo = getClientInfo(request);
-            await recordLoginAttempt(email, false, clientInfo.ipAddress, clientInfo.userAgent);
-            
-            await logAuthEvent(
-              "login",
-              user.id,
-              false,
-              request,
-              {
-                email,
-                reason: "email_not_verified",
-              }
-            );
-            
-            // Return friendly error message instead of generic Better Auth error
-            // Use the exact format Better Auth expects: { error: { message: string } }
-            return NextResponse.json(
-              { 
-                error: { 
-                  message: "Please verify your email address before logging in. Check your inbox for the verification link.",
-                  code: "EMAIL_NOT_VERIFIED"
-                } 
-              },
-              { status: 403 }
-            );
-          }
+          // Email verification check removed - email verification is disabled
+          // If re-enabled, uncomment the emailVerified check
         } catch (checkError) {
           if (process.env.NODE_ENV === "development") {
             console.error("Error checking email verification status:", checkError);
