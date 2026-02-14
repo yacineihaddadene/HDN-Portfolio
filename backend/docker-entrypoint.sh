@@ -43,29 +43,8 @@ else
 fi
 
 echo "Seeding database..."
-# Run seed in background and wait with timeout (90s so full seed can complete on cold DB)
-npm run seed &
-SEED_PID=$!
-# Wait up to 90 seconds for seed to complete
-for i in $(seq 1 90); do
-  if ! kill -0 $SEED_PID 2>/dev/null; then
-    # Process finished
-    wait $SEED_PID
-    SEED_EXIT=$?
-    if [ $SEED_EXIT -eq 0 ]; then
-      echo "Seeding completed successfully"
-    else
-      echo "WARNING: Seeding exited with code $SEED_EXIT, but continuing..."
-    fi
-    break
-  fi
-  sleep 1
-done
-if kill -0 $SEED_PID 2>/dev/null; then
-  echo "WARNING: Seeding timed out, killing process and continuing..."
-  kill $SEED_PID 2>/dev/null || true
-  wait $SEED_PID 2>/dev/null || true
-fi
+npm run seed || echo "WARNING: Seeding failed, but continuing..."
+echo "Seeding completed"
 
 echo "Starting Next.js server on port ${PORT:-8080}..."
 exec npm start
