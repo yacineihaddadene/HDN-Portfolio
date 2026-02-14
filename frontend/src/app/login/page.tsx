@@ -30,10 +30,10 @@ export default function LoginPage() {
       const signInPromise = authClient.signIn.email({ email, password });
       const result = await Promise.race([signInPromise, timeoutPromise]);
 
-      const err = result?.error ?? (result as { error?: { message?: string } })?.error;
-      if (err) {
+      const err = result && "error" in result ? result.error : undefined;
+      if (err != null) {
         const message =
-          typeof err === "object" && err !== null && "message" in err
+          typeof err === "object" && "message" in err
             ? String((err as { message?: string }).message)
             : typeof err === "string"
               ? err
