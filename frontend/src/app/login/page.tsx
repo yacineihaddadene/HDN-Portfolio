@@ -33,10 +33,19 @@ export default function LoginPage() {
         return;
       }
 
-      // Redirect to dashboard on success
+      // Verify we have a session before redirecting (avoids redirect loop if cookie wasn't set)
+      const session = await authClient.getSession();
+      if (!session?.data?.session || !session?.data?.user) {
+        setError("Login succeeded but session could not be established. Please try again.");
+        setLoading(false);
+        return;
+      }
+
       router.push("/dashboard");
-    } catch (err: any) {
-      setError(err.message || "An error occurred");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "An error occurred. Please try again.";
+      setError(message);
       setLoading(false);
     }
   };

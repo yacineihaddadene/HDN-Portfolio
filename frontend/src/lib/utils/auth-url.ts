@@ -9,9 +9,9 @@ export function getAuthServiceBaseUrl(): string {
 }
 
 /**
- * Get the auth service base URL for BetterAuth client.
- * In production, use the full path including /api/auth
- * In development, use localhost without path (BetterAuth adds /api/auth)
+ * Get the auth service base URL for Better Auth client.
+ * Do NOT include /api/auth – the client appends it (e.g. /api/auth/sign-in/email).
+ * Examples: https://yacinehdn.dev/auth (prod), http://localhost:3001 (dev).
  */
 export function getAuthServiceUrl(): string {
   if (typeof window !== "undefined") {

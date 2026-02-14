@@ -222,9 +222,10 @@ export const auth = betterAuth({
       maxAge: 5 * 60, // 5 minutes
       // Removed strategy: "compact" - not available in stable 1.0.0
     },
-    // Cookie settings for cross-origin support (localhost development)
+    // Cookie settings: path "/" is required when auth is behind a path prefix (e.g. /auth)
+    // so the session cookie is sent for the whole domain (e.g. /dashboard, /auth/api/auth/get-session).
     cookieOptions: {
-      sameSite: "lax", // Allows cookies in top-level navigations
+      sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       path: "/",
