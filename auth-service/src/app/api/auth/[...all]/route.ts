@@ -326,10 +326,26 @@ export async function GET(request: NextRequest) {
       }
     } else {
       // In production, log minimal information to prevent information leakage
-      // TODO: Integrate with proper logging service (Winston, Pino, etc.)
-      console.error("Better Auth GET error occurred");
+      console.error("Better Auth GET error occurred:", error instanceof Error ? error.message : "unknown");
     }
-    // Re-throw to let Better Auth handle it
+
+    // Check if this is a database connectivity error - return 503 instead of hanging
+    const isDbError = error instanceof Error && (
+      error.message.includes("CONNECT_TIMEOUT") ||
+      error.message.includes("CONNECTION_REFUSED") ||
+      error.message.includes("ECONNREFUSED") ||
+      error.message.includes("ENOTFOUND") ||
+      error.message.includes("connection terminated")
+    );
+
+    if (isDbError) {
+      return NextResponse.json(
+        { error: { message: "Service temporarily unavailable. Please try again in a moment." } },
+        { status: 503 }
+      );
+    }
+
+    // Re-throw to let Next.js handle it
     throw error;
   }
 }
@@ -356,7 +372,15 @@ export async function POST(request: NextRequest) {
       const email = body?.email;
       
       if (email && typeof email === "string") {
-        const lockoutStatus = await checkAccountLockout(email);
+        let lockoutStatus: Awaited<ReturnType<typeof checkAccountLockout>>;
+        try {
+          lockoutStatus = await checkAccountLockout(email);
+        } catch (dbError) {
+          console.error("Database error during lockout check:", dbError instanceof Error ? dbError.message : dbError);
+          // If the DB is unreachable, skip the lockout check and let Better Auth handle it
+          // Better Auth will also fail if the DB is down, but it has its own error handling
+          lockoutStatus = { isLocked: false, remainingAttempts: 5 };
+        }
         if (lockoutStatus.isLocked) {
           const clientInfo = getClientInfo(request);
           await recordLoginAttempt(email, false, clientInfo.ipAddress, clientInfo.userAgent);
@@ -400,29 +424,34 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        const users = await db.select().from(schema.user).where(eq(schema.user.email, email)).limit(1);
-        const user = users[0];
+        try {
+          const users = await db.select().from(schema.user).where(eq(schema.user.email, email)).limit(1);
+          const user = users[0];
 
-        if (user && user.deletedAt) {
-          const clientInfo = getClientInfo(request);
-          await recordLoginAttempt(email, false, clientInfo.ipAddress, clientInfo.userAgent);
-          
-          await logAuthEvent(
-            "login",
-            user.id,
-            false,
-            request,
-            {
-              email,
-              reason: "account_deleted",
-              deletedAt: user.deletedAt.toISOString(),
-            }
-          );
-          
-          return NextResponse.json(
-            { error: { message: "This account has been deleted and is no longer accessible." } },
-            { status: 403 }
-          );
+          if (user && user.deletedAt) {
+            const clientInfo = getClientInfo(request);
+            await recordLoginAttempt(email, false, clientInfo.ipAddress, clientInfo.userAgent);
+            
+            await logAuthEvent(
+              "login",
+              user.id,
+              false,
+              request,
+              {
+                email,
+                reason: "account_deleted",
+                deletedAt: user.deletedAt.toISOString(),
+              }
+            );
+            
+            return NextResponse.json(
+              { error: { message: "This account has been deleted and is no longer accessible." } },
+              { status: 403 }
+            );
+          }
+        } catch (dbError) {
+          console.error("Database error during user check:", dbError instanceof Error ? dbError.message : dbError);
+          // Skip the deleted account check if DB is unreachable; Better Auth will handle its own DB errors
         }
 
         // Email verification check removed - email verification is disabled
@@ -635,8 +664,27 @@ export async function POST(request: NextRequest) {
       
       return response;
     } catch (error) {
-      // If an error occurred after reading the body, reconstruct the request with the stored body
-      // If body parsing failed, we can't reconstruct it, so let the error propagate
+      // Check if this is a database connectivity error - fail fast with 503
+      const isDbError = error instanceof Error && (
+        error.message.includes("CONNECT_TIMEOUT") ||
+        error.message.includes("CONNECTION_REFUSED") ||
+        error.message.includes("CONNECTION_ENDED") ||
+        error.message.includes("connection terminated") ||
+        error.message.includes("Connection terminated") ||
+        error.message.includes("ECONNREFUSED") ||
+        error.message.includes("ENOTFOUND") ||
+        error.message.includes("too many clients")
+      );
+
+      if (isDbError) {
+        console.error("Database connectivity error during sign-in:", error instanceof Error ? error.message : error);
+        return NextResponse.json(
+          { error: { message: "Service temporarily unavailable. Please try again in a moment." } },
+          { status: 503 }
+        );
+      }
+
+      // For non-DB errors: if body was read, try reconstructing the request
       if (bodyString) {
         try {
           const reconstructedRequest = new NextRequest(request.url, {
@@ -645,14 +693,20 @@ export async function POST(request: NextRequest) {
             body: bodyString,
           });
           return handler.POST(reconstructedRequest);
-        } catch {
-          // If reconstruction also fails, log and re-throw the original error
+        } catch (retryError) {
+          // If reconstruction also fails, return error response
+          const isRetryDbError = retryError instanceof Error && retryError.message.includes("CONNECT_TIMEOUT");
+          if (isRetryDbError) {
+            return NextResponse.json(
+              { error: { message: "Service temporarily unavailable. Please try again in a moment." } },
+              { status: 503 }
+            );
+          }
           console.error("Failed to reconstruct request after error:", error);
           throw error;
         }
       }
-      // If body parsing failed, we can't reconstruct the request
-      // Re-throw the error to let Better Auth handle it
+      // Re-throw the error to let Next.js handle it
       throw error;
     }
   }
@@ -767,10 +821,30 @@ export async function POST(request: NextRequest) {
       if (url.pathname.includes("/callback/")) {
         console.error("OAuth callback error occurred");
       } else {
-        console.error("Better Auth POST error occurred");
+        console.error("Better Auth POST error occurred:", error instanceof Error ? error.message : "unknown");
       }
     }
-    // Re-throw to let Better Auth handle it
+
+    // Check if this is a database connectivity error - return 503 instead of hanging
+    const isDbError = error instanceof Error && (
+      error.message.includes("CONNECT_TIMEOUT") ||
+      error.message.includes("CONNECTION_REFUSED") ||
+      error.message.includes("CONNECTION_ENDED") ||
+      error.message.includes("connection terminated") ||
+      error.message.includes("Connection terminated") ||
+      error.message.includes("ECONNREFUSED") ||
+      error.message.includes("ENOTFOUND") ||
+      error.message.includes("too many clients")
+    );
+
+    if (isDbError) {
+      return NextResponse.json(
+        { error: { message: "Service temporarily unavailable. Please try again in a moment." } },
+        { status: 503 }
+      );
+    }
+
+    // Re-throw to let Next.js handle it
     throw error;
   }
 }

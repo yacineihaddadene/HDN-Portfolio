@@ -21,9 +21,9 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    const timeoutMs = 20000;
+    const timeoutMs = 30000;
     const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("Request timed out. Please check your connection and try again.")), timeoutMs)
+      setTimeout(() => reject(new Error("Request timed out. The server may be experiencing issues. Please try again.")), timeoutMs)
     );
 
     try {

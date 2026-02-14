@@ -27,7 +27,11 @@ const connectionString = process.env.DATABASE_URL || "postgres://build:build@loc
 // Create postgres connection
 // Note: During build, this will use a placeholder connection string
 // At runtime, DATABASE_URL must be set or this will fail
-const client = postgres(connectionString);
+const client = postgres(connectionString, {
+  connect_timeout: 10, // Fail fast (10s) instead of default 30s+ to avoid hanging requests
+  idle_timeout: 20,    // Close idle connections after 20s
+  max_lifetime: 60 * 30, // Max connection lifetime: 30 minutes
+});
 export const db = drizzle(client, { schema });
 
 // Validate environment variables at runtime (not during build)
