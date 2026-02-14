@@ -154,10 +154,11 @@ export const auth = betterAuth({
     },
   },
   // Email verification (requires email service)
+  // TEMPORARILY DISABLED - no email service configured yet
   emailVerification: {
-    enabled: true,
-    requireEmailVerification: true, // Require verification before login
-    sendOnSignUp: true, // Automatically send verification email on signup
+    enabled: false,
+    requireEmailVerification: false, // Allow login without email verification for now
+    sendOnSignUp: false, // Don't send verification email
     autoSignInAfterVerification: true, // Automatically log in user after email verification
     sendVerificationEmail: async ({ user, url, token }, request) => {
       try {
