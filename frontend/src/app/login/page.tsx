@@ -21,15 +21,24 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    try {
-      const { error } = await authClient.signIn.email({
-        email,
-        password,
-      });
+    const timeoutMs = 20000;
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Request timed out. Please check your connection and try again.")), timeoutMs)
+    );
 
-      if (error) {
-        setError(error.message || "Login failed");
-        setLoading(false);
+    try {
+      const signInPromise = authClient.signIn.email({ email, password });
+      const result = await Promise.race([signInPromise, timeoutPromise]);
+
+      const err = result?.error ?? (result as { error?: { message?: string } })?.error;
+      if (err) {
+        const message =
+          typeof err === "object" && err !== null && "message" in err
+            ? String((err as { message?: string }).message)
+            : typeof err === "string"
+              ? err
+              : "Invalid email or password.";
+        setError(message || "Login failed");
         return;
       }
 
@@ -37,7 +46,6 @@ export default function LoginPage() {
       const session = await authClient.getSession();
       if (!session?.data?.session || !session?.data?.user) {
         setError("Login succeeded but session could not be established. Please try again.");
-        setLoading(false);
         return;
       }
 
@@ -46,6 +54,7 @@ export default function LoginPage() {
       const message =
         err instanceof Error ? err.message : "An error occurred. Please try again.";
       setError(message);
+    } finally {
       setLoading(false);
     }
   };
