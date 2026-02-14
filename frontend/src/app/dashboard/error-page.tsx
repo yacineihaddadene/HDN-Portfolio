@@ -4,7 +4,10 @@ import Link from 'next/link';
 export default function DashboardPage() {
   const headersList = headers();
   const cookies = headersList.get('cookie');
-  const hasSession = cookies?.includes('better-auth.session_token');
+  // In production with secure: true, Better Auth prefixes cookie names with __Secure-
+  const hasSession =
+    cookies?.includes('better-auth.session_token') ||
+    cookies?.includes('__Secure-better-auth.session_token');
 
   if (!hasSession) {
     return (

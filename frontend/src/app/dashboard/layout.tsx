@@ -10,7 +10,10 @@ export default async function DashboardLayout({
   const cookies = headersList.get('cookie');
   
   // Check if session cookie exists
-  const hasSession = cookies?.includes('better-auth.session_token');
+  // In production with secure: true, Better Auth prefixes cookie names with __Secure-
+  const hasSession =
+    cookies?.includes('better-auth.session_token') ||
+    cookies?.includes('__Secure-better-auth.session_token');
   
   if (!hasSession) {
     // Return error page instead of rendering children

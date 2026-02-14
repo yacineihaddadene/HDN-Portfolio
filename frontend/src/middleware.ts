@@ -7,7 +7,10 @@ export function middleware(request: NextRequest) {
   // Protect all /dashboard routes
   if (pathname.startsWith('/dashboard')) {
     // Check if user has a session cookie
-    const sessionCookie = request.cookies.get('better-auth.session_token');
+    // In production with secure: true, Better Auth prefixes cookie names with __Secure-
+    const sessionCookie =
+      request.cookies.get('better-auth.session_token') ||
+      request.cookies.get('__Secure-better-auth.session_token');
     
     if (!sessionCookie || !sessionCookie.value) {
       // Redirect to unauthorized page if no session
