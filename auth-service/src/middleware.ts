@@ -117,10 +117,11 @@ export function middleware(request: NextRequest) {
       
       // Add rate limit headers
       const shortRecord = rateLimitStore.get(`${identifier}:short`);
+      const RATE_LIMIT_MAX = 50; // Match the actual rate limit
       
       if (shortRecord) {
-        response.headers.set("X-RateLimit-Limit", "5");
-        response.headers.set("X-RateLimit-Remaining", String(Math.max(0, 5 - shortRecord.count)));
+        response.headers.set("X-RateLimit-Limit", String(RATE_LIMIT_MAX));
+        response.headers.set("X-RateLimit-Remaining", String(Math.max(0, RATE_LIMIT_MAX - shortRecord.count)));
         response.headers.set("X-RateLimit-Reset", String(Math.ceil(shortRecord.resetTime / 1000)));
       }
     }
