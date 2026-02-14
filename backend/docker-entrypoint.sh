@@ -67,5 +67,5 @@ if kill -0 $SEED_PID 2>/dev/null; then
   wait $SEED_PID 2>/dev/null || true
 fi
 
-echo "Starting Next.js server..."
-exec node server.js
+echo "Starting Next.js server on port ${PORT:-8080}..."
+exec npm start
