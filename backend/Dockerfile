@@ -48,7 +48,6 @@ COPY --from=build /app/src ./src
 COPY --from=build /app/drizzle ./drizzle
 COPY --from=build /app/drizzle.config.ts ./
 COPY --from=build /app/tsconfig.json ./
-COPY --from=build /app/scripts ./scripts
 
 # Copy entrypoint script
 COPY docker-entrypoint.sh ./
