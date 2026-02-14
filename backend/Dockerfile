@@ -21,6 +21,9 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
+# Install PostgreSQL client for database connectivity checks
+RUN apk add --no-cache postgresql-client
+
 # Create a non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001
@@ -39,13 +42,13 @@ ENV PORT=8080
 # Copy built application (standalone mode)
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
-COPY --from=build /app/node_modules ./node_modules
 
 # Copy source files needed for migrations and seeding
 COPY --from=build /app/src ./src
 COPY --from=build /app/drizzle ./drizzle
 COPY --from=build /app/drizzle.config.ts ./
 COPY --from=build /app/tsconfig.json ./
+COPY --from=build /app/scripts ./scripts
 
 # Copy entrypoint script
 COPY docker-entrypoint.sh ./
@@ -59,6 +62,10 @@ USER nextjs
 
 # Expose port
 EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/health || exit 1
 
 # Use entrypoint script to run migrations and seed before starting
 ENTRYPOINT ["./docker-entrypoint.sh"]

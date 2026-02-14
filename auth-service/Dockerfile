@@ -23,6 +23,9 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
+# Install PostgreSQL client for database connectivity checks
+RUN apk add --no-cache postgresql-client
+
 # Create a non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001
