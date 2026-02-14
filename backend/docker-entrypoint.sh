@@ -42,9 +42,5 @@ else
   echo "WARNING: Migrations failed, but continuing..."
 fi
 
-echo "Seeding database..."
-npm run seed || echo "WARNING: Seeding failed, but continuing..."
-echo "Seeding completed"
-
 echo "Starting Next.js server on port ${PORT:-8080}..."
 exec npm start
