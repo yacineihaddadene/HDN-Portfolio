@@ -10,17 +10,15 @@ export function getAuthServiceBaseUrl(): string {
 
 /**
  * Get the auth service base URL for Better Auth client.
- * Do NOT include /api/auth – the client appends it (e.g. /api/auth/sign-in/email).
- * Examples: https://yacinehdn.dev/auth (prod), http://localhost:3001 (dev).
+ * Must include /api/auth – the client appends paths like sign-in/email directly.
+ * Examples: https://yacinehdn.dev/auth/api/auth (prod), http://localhost:3001/api/auth (dev).
  */
 export function getAuthServiceUrl(): string {
   if (typeof window !== "undefined") {
-    // Client-side: use NEXT_PUBLIC_AUTH_SERVICE_URL
-    return process.env.NEXT_PUBLIC_AUTH_SERVICE_URL || "http://localhost:3001";
+    return process.env.NEXT_PUBLIC_AUTH_SERVICE_URL || "http://localhost:3001/api/auth";
   } else {
-    // Server-side: use AUTH_SERVICE_URL or fallback to NEXT_PUBLIC
-    return process.env.AUTH_SERVICE_URL || 
-           process.env.NEXT_PUBLIC_AUTH_SERVICE_URL || 
-           "http://localhost:3001";
+    return process.env.AUTH_SERVICE_URL ||
+           process.env.NEXT_PUBLIC_AUTH_SERVICE_URL ||
+           "http://localhost:3001/api/auth";
   }
 }
