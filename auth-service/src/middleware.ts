@@ -96,10 +96,10 @@ export function middleware(request: NextRequest) {
     if (isAuthEndpoint && request.method === "POST") {
       const identifier = getRateLimitIdentifier(request);
       
-      // 5 attempts per 15 minutes
-      const shortWindow = checkRateLimit(`${identifier}:short`, 5, 15 * 60 * 1000);
-      // 20 attempts per hour
-      const longWindow = checkRateLimit(`${identifier}:long`, 20, 60 * 60 * 1000);
+      // Temporarily increased for testing: 50 attempts per 15 minutes
+      const shortWindow = checkRateLimit(`${identifier}:short`, 50, 15 * 60 * 1000);
+      // 100 attempts per hour
+      const longWindow = checkRateLimit(`${identifier}:long`, 100, 60 * 60 * 1000);
       
       if (!shortWindow || !longWindow) {
         response.headers.set("Retry-After", "900"); // 15 minutes
