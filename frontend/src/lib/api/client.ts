@@ -1,3 +1,5 @@
+import { getAuthServiceUrl } from "@/lib/utils/auth-url";
+
 const apiUrl =
   typeof window !== "undefined"
     ? process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
@@ -138,10 +140,7 @@ export class ApiClient {
 
   constructor() {
     this.baseUrl = apiUrl;
-    this.authServiceUrl =
-      typeof window !== "undefined"
-        ? process.env.NEXT_PUBLIC_AUTH_SERVICE_URL || "http://localhost:3001"
-        : process.env.AUTH_SERVICE_URL || "http://auth-service:3001";
+    this.authServiceUrl = getAuthServiceUrl();
   }
 
   private async getAuthToken(): Promise<string | null> {
@@ -153,8 +152,8 @@ export class ApiClient {
     }
 
     try {
-      // Get JWT token from auth service
-      const response = await fetch(`${this.authServiceUrl}/api/auth/token`, {
+      // NEXT_PUBLIC_AUTH_SERVICE_URL is the API base (e.g. .../auth/api/auth), so append /token only
+      const response = await fetch(`${this.authServiceUrl}/token`, {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
