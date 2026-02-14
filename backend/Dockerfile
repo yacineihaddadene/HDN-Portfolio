@@ -34,10 +34,12 @@ RUN npm ci
 
 # Now set NODE_ENV for runtime
 ENV NODE_ENV=production
+ENV PORT=8080
 
 # Copy built application (standalone mode)
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
+COPY --from=build /app/node_modules ./node_modules
 
 # Copy source files needed for migrations and seeding
 COPY --from=build /app/src ./src
@@ -57,10 +59,6 @@ USER nextjs
 
 # Expose port
 EXPOSE 8080
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/health || exit 1
 
 # Use entrypoint script to run migrations and seed before starting
 ENTRYPOINT ["./docker-entrypoint.sh"]

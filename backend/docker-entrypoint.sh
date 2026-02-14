@@ -45,4 +45,4 @@ if kill -0 $SEED_PID 2>/dev/null; then
 fi
 
 echo "🔧 Starting Next.js server..."
-exec node server.js
+exec npm start
