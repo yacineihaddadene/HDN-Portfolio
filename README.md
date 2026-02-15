@@ -229,12 +229,7 @@ See `.env` file for all configuration. Key variables:
 
 For detailed documentation, see `PROJECT_STRUCTURE_AND_SETUP.md`.
 
-## 🤝 Contributing
 
-1. Create a feature branch
-2. Make your changes
-3. Test locally with Docker
-4. Submit a pull request
 
 ## 📄 License
 
