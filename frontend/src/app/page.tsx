@@ -292,6 +292,11 @@ export default function Home() {
         <Script
           src={`https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`}
           strategy="afterInteractive"
+          onLoad={() => {
+            if (typeof window !== "undefined") {
+              (window as unknown as { __RECAPTCHA_LOADED?: boolean }).__RECAPTCHA_LOADED = true;
+            }
+          }}
         />
       )}
       {/* Navigation */}
