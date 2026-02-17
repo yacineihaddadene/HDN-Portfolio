@@ -31,6 +31,14 @@ import {
   X,
 } from "lucide-react";
 import { SkillIcon } from "@/lib/skillIcons";
+import dynamic from "next/dynamic";
+
+const ReCAPTCHA = dynamic(
+  () => import("react-google-recaptcha").then((mod) => mod.default),
+  { ssr: false },
+);
+
+const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
 export default function Home() {
   const [lang, setLang] = useState<"en" | "fr">("en");
@@ -1515,15 +1523,31 @@ function TestimonialForm({
     message: "",
     rating: 0,
   });
-  const [status, setStatus] = useState<
-    "idle" | "sending" | "success" | "error"
-  >("idle");
+  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">(
+    "idle",
+  );
   const [errorMessage, setErrorMessage] = useState("");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaError, setCaptchaError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus("sending");
     setErrorMessage("");
+    setCaptchaError(null);
+
+    // If reCAPTCHA is enabled, require a valid token before submitting
+    if (RECAPTCHA_SITE_KEY && !captchaToken) {
+      setStatus("error");
+      setErrorMessage(
+        t(
+          "Please complete the captcha verification.",
+          "Veuillez compléter la vérification captcha.",
+        ),
+      );
+      return;
+    }
+
+    setStatus("sending");
     try {
       await apiClient.submitTestimonial({
         name: formData.name,
@@ -1532,6 +1556,7 @@ function TestimonialForm({
         email: formData.email,
         message: { en: formData.message, fr: formData.message },
         rating: formData.rating,
+        captchaToken: captchaToken ?? undefined,
       });
       setStatus("success");
       setFormData({
@@ -1542,6 +1567,7 @@ function TestimonialForm({
         message: "",
         rating: 0,
       });
+      setCaptchaToken(null);
       setTimeout(() => setStatus("idle"), 5000);
     } catch (error) {
       setStatus("error");
@@ -1631,6 +1657,30 @@ function TestimonialForm({
             {errorMessage}
           </p>
         </motion.div>
+      )}
+
+      {RECAPTCHA_SITE_KEY && (
+        <div className="mb-6 flex justify-center">
+          <ReCAPTCHA
+            sitekey={RECAPTCHA_SITE_KEY}
+            onChange={(token) => {
+              setCaptchaToken(token);
+              setCaptchaError(null);
+            }}
+            onExpired={() => {
+              setCaptchaToken(null);
+              setCaptchaError(
+                t(
+                  "Captcha expired. Please complete it again.",
+                  "Le captcha a expiré. Veuillez le compléter à nouveau.",
+                ),
+              );
+            }}
+          />
+        </div>
+      )}
+      {captchaError && (
+        <p className="mb-4 text-sm text-red-400 text-center">{captchaError}</p>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -1752,7 +1802,8 @@ function TestimonialForm({
           status === "sending" ||
           status === "success" ||
           formData.rating === 0 ||
-          !formData.message
+          !formData.message ||
+          !!(RECAPTCHA_SITE_KEY && !captchaToken)
         }
         className="w-full px-8 py-4 bg-gradient-to-r from-accent to-accent/80 text-background rounded-xl hover:shadow-xl hover:shadow-accent/30 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
       >
@@ -1790,19 +1841,39 @@ function ContactForm({
     subject: "",
     message: "",
   });
-  const [status, setStatus] = useState<
-    "idle" | "sending" | "success" | "error"
-  >("idle");
+  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">(
+    "idle",
+  );
   const [errorMessage, setErrorMessage] = useState("");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaError, setCaptchaError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus("sending");
     setErrorMessage("");
+    setCaptchaError(null);
+
+    // If reCAPTCHA is enabled, require a valid token before submitting
+    if (RECAPTCHA_SITE_KEY && !captchaToken) {
+      setStatus("error");
+      setErrorMessage(
+        t(
+          "Please complete the captcha verification.",
+          "Veuillez compléter la vérification captcha.",
+        ),
+      );
+      return;
+    }
+
+    setStatus("sending");
     try {
-      await apiClient.sendMessage(formData);
+      await apiClient.sendMessage({
+        ...formData,
+        captchaToken: captchaToken ?? undefined,
+      });
       setStatus("success");
       setFormData({ name: "", email: "", subject: "", message: "" });
+      setCaptchaToken(null);
       setTimeout(() => setStatus("idle"), 5000);
     } catch (error) {
       setStatus("error");
@@ -1894,6 +1965,30 @@ function ContactForm({
         </motion.div>
       )}
 
+      {RECAPTCHA_SITE_KEY && (
+        <div className="mb-6 flex justify-center">
+          <ReCAPTCHA
+            sitekey={RECAPTCHA_SITE_KEY}
+            onChange={(token) => {
+              setCaptchaToken(token);
+              setCaptchaError(null);
+            }}
+            onExpired={() => {
+              setCaptchaToken(null);
+              setCaptchaError(
+                t(
+                  "Captcha expired. Please complete it again.",
+                  "Le captcha a expiré. Veuillez le compléter à nouveau.",
+                ),
+              );
+            }}
+          />
+        </div>
+      )}
+      {captchaError && (
+        <p className="mb-4 text-sm text-red-400 text-center">{captchaError}</p>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
           <label className="block text-sm font-medium text-foreground/80 mb-2">
@@ -1952,7 +2047,11 @@ function ContactForm({
       </div>
       <button
         type="submit"
-        disabled={status === "sending" || status === "success"}
+        disabled={
+          status === "sending" ||
+          status === "success" ||
+          !!(RECAPTCHA_SITE_KEY && !captchaToken)
+        }
         className="w-full px-8 py-4 bg-gradient-to-r from-accent to-accent/80 text-background rounded-xl hover:shadow-xl hover:shadow-accent/30 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
       >
         {status === "sending"

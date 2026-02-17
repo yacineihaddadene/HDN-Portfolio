@@ -20,7 +20,11 @@ function getDb() {
       );
       _db = drizzle(dummyClient, { schema });
     } else {
-      const client = postgres(connectionString);
+      const client = postgres(connectionString, {
+        connect_timeout: 10,
+        idle_timeout: 20,
+        max_lifetime: 60 * 30,
+      });
       _db = drizzle(client, { schema });
     }
   }

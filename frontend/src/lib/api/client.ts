@@ -672,6 +672,7 @@ export class ApiClient {
     email: string;
     subject?: string;
     message: string;
+    captchaToken?: string;
   }) {
     return this.request("/api/public/messages", {
       method: "POST",
@@ -686,6 +687,7 @@ export class ApiClient {
     email: string;
     message: { en: string; fr: string } | string;
     rating: number;
+    captchaToken?: string;
   }) {
     return this.request("/api/public/testimonials", {
       method: "POST",

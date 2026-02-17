@@ -9,7 +9,12 @@ import {
   validateNotEmpty,
   validateRating,
 } from "@/lib/utils/validation";
-import { checkRateLimit, getClientIP, getRateLimitErrorResponse } from "@/lib/utils/rate-limiter";
+import {
+  checkRateLimit,
+  getClientIP,
+  getRateLimitErrorResponse,
+} from "@/lib/utils/rate-limiter";
+import { verifyRecaptchaToken } from "@/lib/utils/recaptcha";
 
 export async function GET(request: NextRequest) {
   try {
@@ -51,7 +56,29 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, position, company, email, message, rating } = body;
+    const { name, position, company, email, message, rating, captchaToken } =
+      body;
+
+    // Optional reCAPTCHA verification (enforced when RECAPTCHA_SECRET_KEY is set)
+    if (process.env.RECAPTCHA_SECRET_KEY) {
+      if (!captchaToken || typeof captchaToken !== "string") {
+        return NextResponse.json(
+          { error: "Captcha verification failed. Please try again." },
+          { status: 400 },
+        );
+      }
+      const captchaResult = await verifyRecaptchaToken(captchaToken, clientIP);
+      if (!captchaResult.success) {
+        console.error(
+          "reCAPTCHA verification failed for testimonial:",
+          captchaResult["error-codes"],
+        );
+        return NextResponse.json(
+          { error: "Captcha verification failed. Please try again." },
+          { status: 400 },
+        );
+      }
+    }
 
     // Validation
     if (!validateNotEmpty(name)) {
