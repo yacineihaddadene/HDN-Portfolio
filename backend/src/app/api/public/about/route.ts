@@ -6,14 +6,8 @@ export async function GET(_request: NextRequest) {
     // Get the first (and only) about record
     const [aboutData] = await db.select().from(about).limit(1);
 
-    if (!aboutData) {
-      return NextResponse.json(
-        { error: "About data not found" },
-        { status: 404 },
-      );
-    }
-
-    return NextResponse.json({ about: aboutData });
+    // Return 200 with null when no about record (so page still loads; frontend handles null)
+    return NextResponse.json({ about: aboutData ?? null });
   } catch (error) {
     console.error("Error fetching about data:", error);
     return NextResponse.json(

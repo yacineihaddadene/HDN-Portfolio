@@ -69,14 +69,30 @@ export async function POST(request: NextRequest) {
       }
       const captchaResult = await verifyRecaptchaToken(captchaToken, clientIP);
       if (!captchaResult.success) {
-        console.error(
-          "reCAPTCHA verification failed for testimonial:",
-          captchaResult["error-codes"],
-        );
-        return NextResponse.json(
-          { error: "Captcha verification failed. Please try again." },
-          { status: 400 },
-        );
+        const errorCodes = captchaResult["error-codes"] ?? [];
+        const allowIfFailed = process.env.RECAPTCHA_ALLOW_IF_FAILED === "1" || process.env.RECAPTCHA_ALLOW_IF_FAILED === "true";
+        if (allowIfFailed) {
+          console.warn(
+            "reCAPTCHA verification failed but RECAPTCHA_ALLOW_IF_FAILED is set; allowing testimonial. error-codes:",
+            errorCodes,
+          );
+        } else {
+          const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || "this site";
+          const hint = errorCodes.includes("hostname-mismatch")
+            ? ` Add the domain "${host}" to your reCAPTCHA key at https://www.google.com/recaptcha/admin`
+            : "";
+          console.error(
+            "reCAPTCHA verification failed for testimonial:",
+            errorCodes,
+          );
+          return NextResponse.json(
+            {
+              error: "Captcha verification failed. Please try again." + hint,
+              errorCodes,
+            },
+            { status: 400 },
+          );
+        }
       }
     }
 
