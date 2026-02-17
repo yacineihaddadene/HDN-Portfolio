@@ -8,7 +8,7 @@ interface RecaptchaVerifyResponse {
 }
 
 /**
- * Verify a Google reCAPTCHA v2 token with the Google API.
+ * Verify a Google reCAPTCHA v2 or v3 token with the Google API.
  *
  * If RECAPTCHA_SECRET_KEY is not set:
  * - In production, verification fails (more secure).
