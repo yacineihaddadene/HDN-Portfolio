@@ -33,25 +33,48 @@ import {
 import { SkillIcon } from "@/lib/skillIcons";
 import Script from "next/script";
 
-const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ?? "";
 
-/** Get a reCAPTCHA v3 token (invisible). Call on form submit. */
+/** Get a reCAPTCHA v3 token (invisible). Waits for script to load, then executes. */
 function getRecaptchaV3Token(action: string): Promise<string> {
+  const siteKey = RECAPTCHA_SITE_KEY;
+  if (!siteKey || typeof window === "undefined") {
+    return Promise.reject(new Error("reCAPTCHA not configured"));
+  }
+
+  const getG = () =>
+    (window as unknown as { grecaptcha?: { ready: (fn: () => void) => void; execute: (key: string, opts: { action: string }) => Promise<string> } })
+      .grecaptcha;
+
   return new Promise((resolve, reject) => {
-    if (!RECAPTCHA_SITE_KEY || typeof window === "undefined") {
-      reject(new Error("reCAPTCHA not configured"));
-      return;
+    function run() {
+      const g = getG();
+      if (!g) {
+        reject(new Error("reCAPTCHA not loaded"));
+        return;
+      }
+      g.ready(() => {
+        g.execute(siteKey, { action })
+          .then(resolve)
+          .catch(reject);
+      });
     }
-    const g = (window as unknown as { grecaptcha?: { ready: (fn: () => void) => void; execute: (key: string, opts: { action: string }) => Promise<string> } }).grecaptcha;
-    if (!g) {
-      reject(new Error("reCAPTCHA not loaded"));
-      return;
+
+    if (getG()) {
+      run();
+    } else {
+      let attempts = 0;
+      const id = setInterval(() => {
+        attempts++;
+        if (getG()) {
+          clearInterval(id);
+          run();
+        } else if (attempts >= 10) {
+          clearInterval(id);
+          reject(new Error("reCAPTCHA not loaded"));
+        }
+      }, 300);
     }
-    g.ready(() => {
-      g.execute(RECAPTCHA_SITE_KEY, { action })
-        .then(resolve)
-        .catch(reject);
-    });
   });
 }
 
