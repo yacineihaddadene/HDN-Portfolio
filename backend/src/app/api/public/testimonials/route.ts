@@ -60,7 +60,8 @@ export async function POST(request: NextRequest) {
       body;
 
     // Optional reCAPTCHA verification (enforced when RECAPTCHA_SECRET_KEY is set)
-    if (process.env.RECAPTCHA_SECRET_KEY) {
+    const allowIfFailed = process.env.RECAPTCHA_ALLOW_IF_FAILED === "1" || process.env.RECAPTCHA_ALLOW_IF_FAILED === "true";
+    if (process.env.RECAPTCHA_SECRET_KEY && !allowIfFailed) {
       if (!captchaToken || typeof captchaToken !== "string") {
         return NextResponse.json(
           { error: "Captcha verification failed. Please try again." },
@@ -70,29 +71,30 @@ export async function POST(request: NextRequest) {
       const captchaResult = await verifyRecaptchaToken(captchaToken, clientIP);
       if (!captchaResult.success) {
         const errorCodes = captchaResult["error-codes"] ?? [];
-        const allowIfFailed = process.env.RECAPTCHA_ALLOW_IF_FAILED === "1" || process.env.RECAPTCHA_ALLOW_IF_FAILED === "true";
-        if (allowIfFailed) {
-          console.warn(
-            "reCAPTCHA verification failed but RECAPTCHA_ALLOW_IF_FAILED is set; allowing testimonial. error-codes:",
+        const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || "this site";
+        const hint = errorCodes.includes("hostname-mismatch")
+          ? ` Add the domain "${host}" to your reCAPTCHA key at https://www.google.com/recaptcha/admin`
+          : "";
+        console.error(
+          "reCAPTCHA verification failed for testimonial:",
+          errorCodes,
+        );
+        return NextResponse.json(
+          {
+            error: "Captcha verification failed. Please try again." + hint,
             errorCodes,
-          );
-        } else {
-          const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || "this site";
-          const hint = errorCodes.includes("hostname-mismatch")
-            ? ` Add the domain "${host}" to your reCAPTCHA key at https://www.google.com/recaptcha/admin`
-            : "";
-          console.error(
-            "reCAPTCHA verification failed for testimonial:",
-            errorCodes,
-          );
-          return NextResponse.json(
-            {
-              error: "Captcha verification failed. Please try again." + hint,
-              errorCodes,
-            },
-            { status: 400 },
-          );
-        }
+          },
+          { status: 400 },
+        );
+      }
+    } else if (process.env.RECAPTCHA_SECRET_KEY && allowIfFailed && typeof captchaToken === "string" && captchaToken) {
+      // Bypass enabled: still verify if token was sent, for logging only
+      const captchaResult = await verifyRecaptchaToken(captchaToken, clientIP);
+      if (!captchaResult.success) {
+        console.warn(
+          "reCAPTCHA verification failed but RECAPTCHA_ALLOW_IF_FAILED is set; allowing testimonial. error-codes:",
+          captchaResult["error-codes"] ?? [],
+        );
       }
     }
 
