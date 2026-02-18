@@ -706,8 +706,8 @@ export default function Home() {
               {t("SKILLS & EXPERTISE", "COMPÉTENCES ET EXPERTISE")}
             </p>
             <h3 className="font-display text-4xl md:text-5xl font-bold text-foreground">
-              {t("What I", "Ce que je")}{" "}
-              <span className="gradient-text">{t("Bring", "Apporte")}</span>
+              {t("What I", "Ce que j'")}
+              <span className="gradient-text">{t("Bring", "apporte")}</span>
             </h3>
           </motion.div>
           <SkillsGrid skills={data.skills} lang={lang} />
@@ -728,12 +728,12 @@ export default function Home() {
             className="mb-12"
           >
             <p className="text-accent text-sm md:text-base mb-2 tracking-widest uppercase font-medium">
-              {t("FEATURED WORK", "TRAVAUX EN VEDETTE")}
+              {t("FEATURED WORK", "RÉALISATIONS EN VEDETTE")}
             </p>
             <h3 className="font-display text-4xl md:text-5xl font-bold text-foreground">
               {t("Selected", "Projets")}{" "}
               <span className="gradient-text">
-                {t("Projects", "Sélectionnés")}
+                {t("Projects", "selectionnés")}
               </span>
             </h3>
           </motion.div>
@@ -769,7 +769,7 @@ export default function Home() {
             <h3 className="font-display text-4xl md:text-5xl font-bold text-foreground">
               {t("Professional", "Parcours")}{" "}
               <span className="gradient-text">
-                {t("Journey", "Professionnel")}
+                {t("Journey", "professionnel")}
               </span>
             </h3>
           </motion.div>
@@ -783,7 +783,7 @@ export default function Home() {
             <p className="text-center text-muted-foreground text-lg">
               {t(
                 "No work experience added yet",
-                "Aucune expérience professionnelle ajoutée",
+                "Aucune expérience professionnelle ajoutée pour le moment",
               )}
             </p>
           )}
@@ -809,7 +809,7 @@ export default function Home() {
             <h3 className="font-display text-4xl md:text-5xl font-bold text-foreground">
               {t("Academic", "Parcours")}{" "}
               <span className="gradient-text">
-                {t("Background", "Académique")}
+                {t("Background", "académique")}
               </span>
             </h3>
           </motion.div>
@@ -821,7 +821,7 @@ export default function Home() {
             </div>
           ) : (
             <p className="text-center text-muted-foreground text-lg">
-              {t("No education history added yet", "Aucune formation ajoutée")}
+              {t("No education history added yet", "Aucune formation ajoutée pour le moment")}
             </p>
           )}
         </div>
@@ -845,7 +845,7 @@ export default function Home() {
             </p>
             <h3 className="font-display text-4xl md:text-5xl font-bold text-foreground">
               {t("Beyond", "Au-delà du")}{" "}
-              <span className="gradient-text">{t("Work", "Travail")}</span>
+              <span className="gradient-text">{t("Work", "travail")}</span>
             </h3>
           </motion.div>
           {data.hobbies.length > 0 ? (
@@ -856,7 +856,7 @@ export default function Home() {
             </div>
           ) : (
             <p className="text-center text-muted-foreground text-lg">
-              {t("No hobbies added yet", "Aucun loisir ajouté")}
+              {t("No hobbies added yet", "Aucun loisir ajouté pour le moment")}
             </p>
           )}
         </div>
@@ -905,7 +905,7 @@ export default function Home() {
                 <p className="text-gray-400 mb-8 max-w-2xl mx-auto">
                   {t(
                     "Get a comprehensive overview of my experience, skills, and qualifications",
-                    "Obtenez un aperçu complet de mon expérience, mes compétences et qualifications",
+                    "Obtenez un aperçu complet de mon expérience, de mes compétences et de mes qualifications",
                   )}
                 </p>
 
@@ -940,13 +940,13 @@ export default function Home() {
                 </div>
 
                 <h3 className="text-3xl font-bold text-gray-400 mb-3">
-                  {t("Resume Coming Soon", "CV Bientôt Disponible")}
+                  {t("Resume Coming Soon", "CV bientôt disponible")}
                 </h3>
 
                 <p className="text-gray-500 mb-8 max-w-2xl mx-auto">
                   {t(
                     "My professional resume will be available for download here soon. Stay tuned!",
-                    "Mon CV professionnel sera bientôt disponible en téléchargement ici. Restez à l'écoute!",
+                    "Mon CV professionnel sera bientôt disponible en téléchargement ici. Restez à l'écoute !",
                   )}
                 </p>
 
@@ -955,7 +955,7 @@ export default function Home() {
                   className="inline-flex items-center gap-3 px-8 py-4 bg-gray-800 text-gray-500 text-lg font-semibold rounded-lg cursor-not-allowed opacity-50"
                 >
                   <FileText className="w-6 h-6" />
-                  {t("No Resume Available", "CV Non Disponible")}
+                  {t("No Resume Available", "CV non disponible")}
                 </button>
 
                 <p className="text-xs text-gray-600 mt-4">
@@ -1035,7 +1035,7 @@ export default function Home() {
             </p>
             <h3 className="font-display text-4xl md:text-5xl font-bold text-foreground">
               {t("Let's", "Parlons de")}{" "}
-              <span className="gradient-text">{t("Talk", "votre Projet")}</span>
+              <span className="gradient-text">{t("Talk", "votre projet")}</span>
             </h3>
           </motion.div>
           <ContactForm lang={lang} t={t} />
@@ -1752,7 +1752,7 @@ function TestimonialForm({
         </div>
         <div>
           <label className="block text-sm font-medium text-foreground/80 mb-2">
-            {t("Company (Optional)", "Entreprise (Optionnel)")}
+            {t("Company (Optional)", "Entreprise (optionnel)")}
           </label>
           <input
             type="text"
@@ -2040,9 +2040,9 @@ function ContactForm({
         className="w-full px-8 py-4 bg-gradient-to-r from-accent to-accent/80 text-background rounded-xl hover:shadow-xl hover:shadow-accent/30 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
       >
         {status === "sending"
-          ? t("Sending...", "Envoi...")
+          ? t("Sending...", "Envoi en cours...")
           : status === "success"
-            ? t("Message sent!", "Message envoyé!")
+            ? t("Message sent!", "Message envoyé !")
             : status === "error"
               ? t("Error, try again", "Erreur, réessayez")
               : t("Send Message", "Envoyer")}
